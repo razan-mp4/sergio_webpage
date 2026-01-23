@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="uk">
 <head>
+  <script>document.documentElement.classList.add('js');</script>
+
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>NVQ + CSCS / IPAF — Швидко та легко</title>
@@ -12,6 +14,20 @@
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
   <style>
+
+    /* Only hide animated elements when JS is running */
+.js .reveal-title,
+.js .reveal-side{
+  opacity: 0;
+}
+
+/* When visible */
+.reveal-title.is-visible,
+.reveal-side.is-visible{
+  opacity: 1;
+  transform: translate3d(0,0,0);
+}
+
 /* =======================
    VARIABLES + GLOBAL
 ======================= */
@@ -1856,9 +1872,7 @@ I can get my Blue CSCS card. This helped me get better site access.”</p>
   }
 
 
-    // ===== Reveal on scroll (appear + disappear) =====
-    const revealTitleEls = document.querySelectorAll('.reveal-title');
-    const revealSideEls  = document.querySelectorAll('.reveal-side');
+
 
     const ioTitle = new IntersectionObserver((entries) => {
       for (const e of entries) {
