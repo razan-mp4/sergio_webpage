@@ -1828,64 +1828,91 @@ I can get my Blue CSCS card. This helped me get better site access.”</p>
 
 
   <script>
+(() => {
+  // run after DOM exists
+  document.addEventListener('DOMContentLoaded', () => {
 
-
-    // ===== Reveal on scroll (appear + disappear) =====
+    // ===== Reveal on scroll =====
     const revealTitleEls = document.querySelectorAll('.reveal-title');
     const revealSideEls  = document.querySelectorAll('.reveal-side');
 
-    const ioTitle = new IntersectionObserver((entries) => {
-      for (const e of entries) {
-        if (e.isIntersecting) e.target.classList.add('is-visible');
-        else e.target.classList.remove('is-visible');
-      }
-    }, { threshold: 0.20, rootMargin: '0px 0px -12% 0px' });
+    if (!('IntersectionObserver' in window)) {
+      revealTitleEls.forEach(el => el.classList.add('is-visible'));
+      revealSideEls.forEach(el => el.classList.add('is-visible'));
+    } else {
+      const ioTitle = new IntersectionObserver((entries) => {
+        for (const e of entries) {
+          e.target.classList.toggle('is-visible', e.isIntersecting);
+        }
+      }, { threshold: 0.20, rootMargin: '0px 0px -12% 0px' });
 
-    const ioSide = new IntersectionObserver((entries) => {
-      for (const e of entries) {
-        if (e.isIntersecting) e.target.classList.add('is-visible');
-        else e.target.classList.remove('is-visible');
-      }
-    }, { threshold: 0.16, rootMargin: '0px 0px -10% 0px' });
+      const ioSide = new IntersectionObserver((entries) => {
+        for (const e of entries) {
+          e.target.classList.toggle('is-visible', e.isIntersecting);
+        }
+      }, { threshold: 0.16, rootMargin: '0px 0px -10% 0px' });
 
-    revealTitleEls.forEach(el => ioTitle.observe(el));
-    revealSideEls.forEach(el => ioSide.observe(el));
+      revealTitleEls.forEach(el => ioTitle.observe(el));
+      revealSideEls.forEach(el => ioSide.observe(el));
+    }
 
     // ===== Drawer menu logic =====
     const body = document.body;
     const hamburger = document.getElementById('hamburger');
     const overlay = document.getElementById('drawerOverlay');
     const closeBtn = document.getElementById('drawerClose');
+    const drawer = document.getElementById('drawer');
 
-const drawer = document.getElementById('drawer');
+    function isPhoneView(){
+      return window.matchMedia('(max-width: 720px)').matches;
+    }
 
-function openDrawer(){
-  body.classList.add('drawer-open');
-  hamburger.setAttribute('aria-expanded','true');
-  drawer.setAttribute('aria-hidden','false');
-  overlay.setAttribute('aria-hidden','false');
+    const footerEl = document.getElementById('pageFooter');
 
-  // keep buttons down while menu open
-  body.classList.remove('footer-in-view');
-}
+    function recomputeFooterState(){
+      if (!isPhoneView()){
+        body.classList.remove('footer-in-view');
+        return;
+      }
+      if (body.classList.contains('drawer-open')){
+        body.classList.remove('footer-in-view');
+        return;
+      }
+      if (!footerEl) return;
 
-function closeDrawer(){
-  body.classList.remove('drawer-open');
-  hamburger.setAttribute('aria-expanded','false');
-  drawer.setAttribute('aria-hidden','true');
-  overlay.setAttribute('aria-hidden','true');
+      const footerRect = footerEl.getBoundingClientRect();
+      const vh = window.innerHeight || document.documentElement.clientHeight;
 
-  // IMPORTANT: after closing menu, re-check jump state at bottom
-  requestAnimationFrame(() => {
-    recomputeFooterState();
-  });
-}
+      const fabSize = 62;
+      const fabBottom = 18;
+      const advancePx = 40;
 
+      const overlapLine = vh - (fabBottom + fabSize) + advancePx;
+      const shouldJump = footerRect.top <= overlapLine;
 
+      body.classList.toggle('footer-in-view', shouldJump);
+    }
+
+    function openDrawer(){
+      if (!hamburger || !drawer || !overlay) return;
+      body.classList.add('drawer-open');
+      hamburger.setAttribute('aria-expanded','true');
+      drawer.setAttribute('aria-hidden','false');
+      overlay.setAttribute('aria-hidden','false');
+      body.classList.remove('footer-in-view');
+    }
+
+    function closeDrawer(){
+      if (!hamburger || !drawer || !overlay) return;
+      body.classList.remove('drawer-open');
+      hamburger.setAttribute('aria-expanded','false');
+      drawer.setAttribute('aria-hidden','true');
+      overlay.setAttribute('aria-hidden','true');
+      requestAnimationFrame(recomputeFooterState);
+    }
 
     hamburger?.addEventListener('click', () => {
-      if (body.classList.contains('drawer-open')) closeDrawer();
-      else openDrawer();
+      body.classList.contains('drawer-open') ? closeDrawer() : openDrawer();
     });
     overlay?.addEventListener('click', closeDrawer);
     closeBtn?.addEventListener('click', closeDrawer);
@@ -1897,6 +1924,7 @@ function closeDrawer(){
       if (!target) return;
       target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+
     document.querySelectorAll('[data-nav]').forEach(link => {
       link.addEventListener('click', (e) => {
         const href = link.getAttribute('href') || '';
@@ -1908,9 +1936,10 @@ function closeDrawer(){
       });
     });
 
-    // ===== Accordion (multi-open, do NOT close previous) =====
+    // ===== Accordion (multi-open) =====
     document.querySelectorAll('#accordion .acc-item').forEach(item => {
       const btn = item.querySelector('.acc-btn');
+      if (!btn) return;
       btn.addEventListener('click', () => {
         const isOpen = item.classList.contains('open');
         item.classList.toggle('open', !isOpen);
@@ -1918,7 +1947,7 @@ function closeDrawer(){
       });
     });
 
-    // ===== Slider dots (robust for desktop + phone) =====
+    // ===== Slider dots =====
     function setupDots(sliderId, dotsId) {
       const slider = document.getElementById(sliderId);
       const dotsWrap = document.getElementById(dotsId);
@@ -1943,7 +1972,6 @@ function closeDrawer(){
         dots.forEach((d, i) => d.classList.toggle('active', i === index));
       }
 
-      // Choose slide whose CENTER is closest to slider CENTER
       function currentSlideIndex() {
         const sRect = slider.getBoundingClientRect();
         const sCenter = sRect.left + sRect.width / 2;
@@ -1971,267 +1999,164 @@ function closeDrawer(){
 
       window.addEventListener('resize', () => setActiveDot(currentSlideIndex()));
 
-      // initial
       setActiveDot(0);
     }
 
     setupDots('tradesSlider', 'tradesDots');
     setupDots('reviewsSlider', 'reviewsDots');
 
-    
+    // ===== Footer FAB jump logic =====
+    window.addEventListener('scroll', recomputeFooterState, { passive: true });
+    window.addEventListener('resize', recomputeFooterState);
+    recomputeFooterState();
 
-// ===== Push FABs up when footer enters view (phone only; disabled when drawer open) =====
-const footerEl = document.getElementById('pageFooter');
+    // ===== Dissolve card backgrounds =====
+    const dissolveEls = document.querySelectorAll('.dissolve-card');
+    if ('IntersectionObserver' in window && dissolveEls.length) {
+      const thresholds = Array.from({ length: 101 }, (_, i) => i / 100);
+      const ioDissolve = new IntersectionObserver((entries) => {
+        for (const e of entries) {
+          let r = Math.max(0, Math.min(1, e.intersectionRatio));
+          r = 1 - Math.pow(1 - r, 2);
+          e.target.style.setProperty('--vis', r.toFixed(3));
+        }
+      }, { threshold: thresholds, rootMargin: '12% 0px 12% 0px' });
 
-function isPhoneView(){
-  return window.matchMedia('(max-width: 720px)').matches;
-}
-
-function recomputeFooterState(){
-  // desktop -> never jump
-  if (!isPhoneView()){
-    document.body.classList.remove('footer-in-view');
-    return;
-  }
-
-  // drawer open -> never jump
-  if (document.body.classList.contains('drawer-open')){
-    document.body.classList.remove('footer-in-view');
-    return;
-  }
-
-  if (!footerEl) return;
-
-  const footerRect = footerEl.getBoundingClientRect();
-  const vh = window.innerHeight || document.documentElement.clientHeight;
-
-  // FAB geometry (match your CSS)
-  const fabSize = 62;     // .fab width/height
-  const fabBottom = 18;   // .fab bottom
-  const safetyGap = 10;   // little buffer so it doesn't jitter
-
-  // When footer top enters the FAB zone -> jump
-const advancePx = 40; // 👈 jump earlier by 40px (try 30–80)
-const overlapLine = vh - (fabBottom + fabSize) + advancePx;
-const shouldJump = footerRect.top <= overlapLine;
-
-  document.body.classList.toggle('footer-in-view', shouldJump);
-}
-
-// run on scroll/resize
-window.addEventListener('scroll', recomputeFooterState, { passive: true });
-window.addEventListener('resize', recomputeFooterState);
-document.addEventListener('DOMContentLoaded', recomputeFooterState);
-
-
-window.addEventListener('resize', recomputeFooterState);
-window.addEventListener('scroll', recomputeFooterState, { passive: true });
-document.addEventListener('DOMContentLoaded', recomputeFooterState);
-
-
-if (footerEl) {
-  const ioFooter = new IntersectionObserver((entries) => {
-    if (!isPhoneView()) return;              // phone only
-    if (document.body.classList.contains('drawer-open')) return; // drawer open => ignore
-    const anyVisible = entries.some(e => e.isIntersecting);
-    document.body.classList.toggle('footer-in-view', anyVisible);
-  }, { threshold: 0.02 });
-
-  ioFooter.observe(footerEl);
-
-  // Keep correct on resize / orientation change
-  window.addEventListener('resize', recomputeFooterState, { passive: true });
-  window.addEventListener('orientationchange', recomputeFooterState);
-}
-
-
-// ===== Dissolve card backgrounds with scroll progress (0..1) =====
-const dissolveEls = document.querySelectorAll('.dissolve-card');
-
-// many thresholds => smooth ratio updates
-const thresholds = Array.from({ length: 101 }, (_, i) => i / 100);
-
-const ioDissolve = new IntersectionObserver((entries) => {
-  for (const e of entries) {
-    // intersectionRatio is 0..1 depending how much is in viewport
-    let r = Math.max(0, Math.min(1, e.intersectionRatio));
-// ease-out curve (slow start, smoother mid)
-r = 1 - Math.pow(1 - r, 2);
-
-    e.target.style.setProperty('--vis', r.toFixed(3));
-  }
-}, {
-  threshold: thresholds,
-  // start fading earlier + keep it fading while leaving
-  rootMargin: '12% 0px 12% 0px'
-});
-
-dissolveEls.forEach(el => ioDissolve.observe(el));
-
-
-// ===== Language selector logic (placeholder) =====
-const langWrap = document.getElementById('langWrap');
-const langBtn = document.getElementById('langBtn');
-const langMenu = document.getElementById('langMenu');
-const langLabel = document.getElementById('langLabel');
-
-const drawerSegBtns = document.querySelectorAll('.seg-btn[data-lang]');
-const menuOpts = document.querySelectorAll('.lang-opt[data-lang]');
-
-const LANGS = { uk: 'UA', en: 'EN', ru: 'RU' };
-
-function getLang(){
-  return localStorage.getItem('site_lang') || 'uk';
-}
-
-function setLang(lang){
-  if (!LANGS[lang]) return;
-
-  localStorage.setItem('site_lang', lang);
-
-  // update label
-  if (langLabel) langLabel.textContent = LANGS[lang];
-
-  // highlight dropdown
-  menuOpts.forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
-  // highlight segmented
-  drawerSegBtns.forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
-
-  // set html lang
-  document.documentElement.setAttribute('lang', lang === 'uk' ? 'uk' : lang);
-
-  // ✅ NEW: navigate to the correct language page
-  // if you are using /uk/, /en/, /ru/ folders:
-  const target = '/' + lang + '/';
-  if (l:contentReference[oaicite:10]{index=10}target && !location.pathname.endsWith(target)) {
-    locati:contentReference[oaicite:11]{index=11}
-}
-
-
-function closeLangMenu(){
-  if (!langWrap) return;
-  langWrap.classList.remove('open');
-  if (langBtn) langBtn.setAttribute('aria-expanded', 'false');
-}
-
-function toggleLangMenu(){
-  if (!langWrap) return;
-  const open = langWrap.classList.toggle('open');
-  if (langBtn) langBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
-}
-
-if (langBtn && langWrap){
-  langBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    toggleLangMenu();
-  });
-
-  // click outside closes
-  document.addEventListener('click', () => closeLangMenu());
-
-  // ESC closes
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeLangMenu();
-  });
-}
-
-// dropdown option click
-menuOpts.forEach(btn => {
-  btn.addEventListener('click', () => {
-    setLang(btn.dataset.lang);
-    closeLangMenu();
-  });
-});
-
-// drawer segmented click
-drawerSegBtns.forEach(btn => {
-  btn.addEventListener('click', () => {
-    setLang(btn.dataset.lang);
-  });
-});
-
-// init
-setLang(getLang());
-function smartSliderSwipe(el){
-  if(!el) return;
-
-  let sx = 0, sy = 0;
-  let decided = false;
-  let isHorizontal = false;
-
-  el.addEventListener("touchstart", (e) => {
-    if (!e.touches || e.touches.length !== 1) return;
-    sx = e.touches[0].clientX;
-    sy = e.touches[0].clientY;
-    decided = false;
-    isHorizontal = false;
-  }, { passive: true });
-
-  el.addEventListener("touchmove", (e) => {
-    if (!e.touches || e.touches.length !== 1) return;
-
-    // if slider can't scroll horizontally, never block page scroll
-    if (el.scrollWidth <= el.clientWidth + 1) return;
-
-    const dx = e.touches[0].clientX - sx;
-    const dy = e.touches[0].clientY - sy;
-
-    // decide direction only after small movement
-    if (!decided) {
-      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
-      decided = true;
-      isHorizontal = Math.abs(dx) > Math.abs(dy);
+      dissolveEls.forEach(el => ioDissolve.observe(el));
     }
 
-    // ONLY if horizontal swipe → prevent vertical page scroll
-    if (isHorizontal) e.preventDefault();
-  }, { passive: false });
-}
+    // ===== Language selector =====
+    const langWrap = document.getElementById('langWrap');
+    const langBtn  = document.getElementById('langBtn');
+    const langLabel = document.getElementById('langLabel');
 
-smartSliderSwipe(document.getElementById("tradesSlider"));
-smartSliderSwipe(document.getElementById("reviewsSlider"));
+    const drawerSegBtns = document.querySelectorAll('.seg-btn[data-lang]');
+    const menuOpts = document.querySelectorAll('.lang-opt[data-lang]');
 
+    const LANGS = { uk: 'UA', en: 'EN', ru: 'RU' };
 
-function enableDragScroll(el){
-  if (!el) return;
+    function getLang(){
+      return localStorage.getItem('site_lang') || 'uk';
+    }
 
-  let isDown = false;
-  let startX = 0;
-  let startScrollLeft = 0;
+    function setLang(lang){
+      if (!LANGS[lang]) return;
 
-  el.addEventListener('mousedown', (e) => {
-    // only left click
-    if (e.button !== 0) return;
+      localStorage.setItem('site_lang', lang);
 
-    isDown = true;
-    el.classList.add('dragging');
-    startX = e.pageX;
-    startScrollLeft = el.scrollLeft;
-  });
+      if (langLabel) langLabel.textContent = LANGS[lang];
 
-  window.addEventListener('mouseup', () => {
-    if (!isDown) return;
-    isDown = false;
-    el.classList.remove('dragging');
-  });
+      menuOpts.forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+      drawerSegBtns.forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
 
-  el.addEventListener('mouseleave', () => {
-    if (!isDown) return;
-    isDown = false;
-    el.classList.remove('dragging');
-  });
+      document.documentElement.setAttribute('lang', lang === 'uk' ? 'uk' : lang);
 
-  el.addEventListener('mousemove', (e) => {
-    if (!isDown) return;
-    e.preventDefault();
-    const dx = e.pageX - startX;
-    el.scrollLeft = startScrollLeft - dx;
-  });
-}
+      // navigate to language folder
+      const target = '/' + lang + '/';
+      if (!location.pathname.endsWith(target)) {
+        location.href = target;
+      }
+    }
 
-enableDragScroll(document.getElementById('reviewsSlider'));
-enableDragScroll(document.getElementById('tradesSlider'));
+    function closeLangMenu(){
+      if (!langWrap) return;
+      langWrap.classList.remove('open');
+      langBtn?.setAttribute('aria-expanded', 'false');
+    }
 
-  </script>
+    function toggleLangMenu(){
+      if (!langWrap) return;
+      const open = langWrap.classList.toggle('open');
+      langBtn?.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
+    langBtn?.addEventListener('click', (e) => { e.stopPropagation(); toggleLangMenu(); });
+    document.addEventListener('click', closeLangMenu);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLangMenu(); });
+
+    menuOpts.forEach(btn => btn.addEventListener('click', () => { setLang(btn.dataset.lang); closeLangMenu(); }));
+    drawerSegBtns.forEach(btn => btn.addEventListener('click', () => setLang(btn.dataset.lang)));
+
+    setLang(getLang());
+
+    // ===== Smart swipe for sliders =====
+    function smartSliderSwipe(el){
+      if(!el) return;
+
+      let sx = 0, sy = 0;
+      let decided = false;
+      let isHorizontal = false;
+
+      el.addEventListener("touchstart", (e) => {
+        if (!e.touches || e.touches.length !== 1) return;
+        sx = e.touches[0].clientX;
+        sy = e.touches[0].clientY;
+        decided = false;
+        isHorizontal = false;
+      }, { passive: true });
+
+      el.addEventListener("touchmove", (e) => {
+        if (!e.touches || e.touches.length !== 1) return;
+        if (el.scrollWidth <= el.clientWidth + 1) return;
+
+        const dx = e.touches[0].clientX - sx;
+        const dy = e.touches[0].clientY - sy;
+
+        if (!decided) {
+          if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+          decided = true;
+          isHorizontal = Math.abs(dx) > Math.abs(dy);
+        }
+
+        if (isHorizontal) e.preventDefault();
+      }, { passive: false });
+    }
+
+    smartSliderSwipe(document.getElementById("tradesSlider"));
+    smartSliderSwipe(document.getElementById("reviewsSlider"));
+
+    // ===== Drag scroll (desktop) =====
+    function enableDragScroll(el){
+      if (!el) return;
+
+      let isDown = false;
+      let startX = 0;
+      let startScrollLeft = 0;
+
+      el.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return;
+        isDown = true;
+        el.classList.add('dragging');
+        startX = e.pageX;
+        startScrollLeft = el.scrollLeft;
+      });
+
+      window.addEventListener('mouseup', () => {
+        if (!isDown) return;
+        isDown = false;
+        el.classList.remove('dragging');
+      });
+
+      el.addEventListener('mouseleave', () => {
+        if (!isDown) return;
+        isDown = false;
+        el.classList.remove('dragging');
+      });
+
+      el.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const dx = e.pageX - startX;
+        el.scrollLeft = startScrollLeft - dx;
+      });
+    }
+
+    enableDragScroll(document.getElementById('reviewsSlider'));
+    enableDragScroll(document.getElementById('tradesSlider'));
+
+  }); // DOMContentLoaded
+})();
+</script>
+
 </body>
 </html>
