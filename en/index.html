@@ -1828,6 +1828,32 @@ I can get my Blue CSCS card. This helped me get better site access.”</p>
 
 
   <script>
+  // ===== Reveal on scroll (appear + disappear) =====
+  const revealTitleEls = document.querySelectorAll('.reveal-title');
+  const revealSideEls  = document.querySelectorAll('.reveal-side');
+
+  // ✅ Fallback for Telegram / older WebViews
+  if (!('IntersectionObserver' in window)) {
+    revealTitleEls.forEach(el => el.classList.add('is-visible'));
+    revealSideEls.forEach(el => el.classList.add('is-visible'));
+  } else {
+    const ioTitle = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) e.target.classList.add('is-visible');
+        else e.target.classList.remove('is-visible');
+      }
+    }, { threshold: 0.20, rootMargin: '0px 0px -12% 0px' });
+
+    const ioSide = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) e.target.classList.add('is-visible');
+        else e.target.classList.remove('is-visible');
+      }
+    }, { threshold: 0.16, rootMargin: '0px 0px -10% 0px' });
+
+    revealTitleEls.forEach(el => ioTitle.observe(el));
+    revealSideEls.forEach(el => ioSide.observe(el));
+  }
 
 
     // ===== Reveal on scroll (appear + disappear) =====
