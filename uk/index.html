@@ -656,39 +656,25 @@ h2{
 }
 
 /* =========================
-   DOTS — MINIMAL (NO BG, NO SHADOW)
+   DOTS — FORCE PERFECT CIRCLES
 ========================= */
 
-.dots{
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-
-  /* remove any container visuals */
-  background: none !important;
-  backdrop-filter: none !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-  border-radius: 0 !important;
-}
-
 .dots .dot{
+  all: unset;                 /* 🔥 nukes ALL button defaults */
+  display: block;
+
   width: 8px;
-  height: 8px;
+  aspect-ratio: 1 / 1;        /* 🔥 guarantees square */
+  height: auto;
+
   border-radius: 50%;
+  background: rgba(255,255,255,0.35);
 
-  background: rgba(255,255,255,0.35); /* inactive gray */
-  opacity: 1;
-
-  box-shadow: none !important;
-  border: none !important;
-
-  transition: background 160ms ease, transform 160ms ease;
+  cursor: pointer;
 }
 
 .dots .dot.active{
-  background: var(--orange); /* your orange */
+  background: var(--orange);
   transform: scale(1.25);
 }
 
