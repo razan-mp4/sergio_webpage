@@ -14,6 +14,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
   <style>
+
     /* Only hide animated elements when JS is running */
 .js .reveal-title,
 .js .reveal-side{
@@ -40,52 +41,115 @@
   --orange: #ff8a2b;
   --orange2:#ff6a00;
 
-  --shadow: 0 22px 70px rgba(0,0,0,0.45);
+  --shadow: 0 22px 70px rgba(0,0,0,0.55);
   --radius: 26px;
-
-  --maxw: 1100px;
+  --maxw: 1120px;
   --navh: 74px;
 }
 
-*{ box-sizing:border-box; }
+*{ box-sizing: border-box; }
+html, body{
+  width: 100%;
+  overflow-x: hidden; /* hard stop */
+}
+.wrap{
+  max-width: 1120px;
+  width: 100%;
+  overflow-x: hidden; /* extra safety */
+}
 html{ scroll-behavior: smooth; }
+
 body{
-  margin:0;
-  font-family: 'Manrope', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  background: radial-gradient(1200px 600px at 20% 0%, rgba(255,138,43,0.08), transparent 60%),
-              radial-gradient(900px 420px at 100% 30%, rgba(255,106,0,0.05), transparent 60%),
-              linear-gradient(180deg, var(--bg), var(--bg2));
+  margin: 0;
+  font-family: "Manrope", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  background:
+    radial-gradient(1100px 700px at 20% 0%, rgba(255,138,43,0.14), transparent 60%),
+    radial-gradient(800px 600px at 100% 35%, rgba(255,106,0,0.10), transparent 55%),
+    linear-gradient(180deg, var(--bg), var(--bg2));
   color: var(--text);
-  overflow-x:hidden;
-  padding-top: calc(var(--navh) + env(safe-area-inset-top));
+  overflow-x: hidden;
 }
 
-a{ color: inherit; }
+body::after{
+  content:"";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
 
-img{ max-width:100%; height:auto; display:block; }
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cg%3E%3Crect x='28' y='34' width='12' height='12' rx='2' fill='%23ff8a2b' fill-opacity='0.16' transform='rotate(18 34 40)'/%3E%3Crect x='140' y='56' width='10' height='10' rx='2' fill='%23ff6a00' fill-opacity='0.12' transform='rotate(-14 145 61)'/%3E%3Crect x='82' y='148' width='14' height='14' rx='3' fill='%23ff8a2b' fill-opacity='0.14' transform='rotate(10 89 155)'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cg%3E%3Crect x='80' y='120' width='20' height='20' rx='4' fill='%23ff8a2b' fill-opacity='0.10' transform='rotate(12 90 130)'/%3E%3Crect x='280' y='240' width='18' height='18' rx='4' fill='%23ff6a00' fill-opacity='0.08' transform='rotate(-10 289 249)'/%3E%3C/g%3E%3C/svg%3E");
 
-h1,h2,h3{ margin:0; }
+  background-repeat: repeat, repeat;
+  background-size: 260px 260px, 520px 520px;
+  background-position: 0 0, 0 0;
 
-p{ margin: 0; }
+  mix-blend-mode: screen;
+  opacity: 0.95;
+
+  animation: bgDrift 26s linear infinite;
+}
+
+@keyframes bgDrift{
+  from { background-position: 0 0, 0 0; }
+  to   { background-position: 260px 260px, -520px 520px; }
+}
+
 
 /* =======================
-   NAV
+   ORANGE GLOW UTILITIES
+======================= */
+
+/* soft ambient glow */
+.glow-soft{
+  position: relative;
+}
+.glow-soft::after{
+  content:"";
+  position:absolute;
+  inset: -40px;
+  background:
+    radial-gradient(420px 220px at 30% 10%, rgba(255,138,43,0.22), transparent 65%);
+  pointer-events:none;
+  z-index: -1;
+}
+
+/* stronger accent glow */
+.glow-strong{
+  position: relative;
+}
+.glow-strong::after{
+  content:"";
+  position:absolute;
+  inset: -60px;
+  background:
+    radial-gradient(520px 280px at 20% 0%, rgba(255,138,43,0.32), transparent 60%),
+    radial-gradient(420px 240px at 90% 40%, rgba(255,106,0,0.20), transparent 60%);
+  pointer-events:none;
+  z-index: -1;
+}
+
+/* subtle edge highlight */
+.glow-edge{
+  box-shadow:
+    0 18px 60px rgba(0,0,0,0.55),
+    0 0 0 1px rgba(255,138,43,0.08),
+    0 0 80px rgba(255,138,43,0.18);
+}
+
+
+/* =======================
+   TOP NAV
 ======================= */
 .nav{
-  position: fixed;
+  position: sticky;
   top: 0;
-  left: 0;
-  right: 0;
   z-index: 1500;
-  height: calc(var(--navh) + env(safe-area-inset-top));
-  padding-top: env(safe-area-inset-top);
+  height: var(--navh);
   backdrop-filter: blur(16px);
   background: rgba(7,8,10,0.70);
 }
-
-/* When drawer is open, the top bar must NOT be visible */
-body.drawer-open .nav{ display:none; }
-
 .nav-inner{
   max-width: var(--maxw);
   height: 100%;
@@ -102,13 +166,24 @@ body.drawer-open .nav{ display:none; }
   align-items: center;
   gap: 10px;
   text-decoration: none;
+  color: var(--text);
+  font-weight: 900;
+  letter-spacing: 0.2px;
   user-select: none;
 }
-
 .logo-img{
-  height: 34px;
+  height: 50px;          /* matches nav height perfectly */
   width: auto;
-  display:block;
+  display: block;
+}
+
+.logo-badge{
+  width: 34px;
+  height: 34px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(255,138,43,0.95), rgba(255,106,0,0.35));
+  box-shadow: 0 18px 60px rgba(255,122,20,0.22);
+  flex: 0 0 auto;
 }
 
 .nav-right{ display:flex; align-items:center; gap:10px; }
@@ -226,7 +301,7 @@ body.drawer-open .nav{ display:none; }
   opacity: 0;
   pointer-events: none;
   transition: opacity 220ms ease;
-  z-index: 2000;
+  z-index: 1200;
 }
 .drawer{
   position: fixed;
@@ -235,7 +310,7 @@ body.drawer-open .nav{ display:none; }
   backdrop-filter: blur(18px);
   transform: translateX(110%);
   transition: transform 260ms cubic-bezier(.2,.8,.2,1);
-  z-index: 2100;
+  z-index: 1300;
   padding: 18px;
   display: flex;
   flex-direction: column;
@@ -278,8 +353,8 @@ body.drawer-open .nav{ display:none; }
 }
 .drawer a:hover{ background: rgba(255,255,255,0.08); transform: translateY(-1px); }
 
-body.drawer-open{
-  overflow: hidden;
+body.drawer-open{ 
+  overflow: hidden; 
   touch-action: none;
 }
 body.drawer-open .drawer-overlay{ opacity: 1; pointer-events: auto; }
@@ -317,7 +392,6 @@ body.drawer-open .drawer{ transform: translateX(0%); }
   max-width: var(--maxw);
   margin: 0 auto;
   padding: 18px 18px 120px;
-  overflow-x: visible; /* allow slider rounded corners/shadows to render */
 }
 section{
   padding: 22px 0;
@@ -346,16 +420,246 @@ section{
   pointer-events:none;
 }
 .surface.card.dissolve-card{
-  --vis: 0;
+  --vis: 0; /* updated by JS */
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255, calc(0.06 * var(--vis))),
+    rgba(255,255,255, calc(0.03 * var(--vis)))
+  );
+  box-shadow: 0 22px 70px rgba(0,0,0, calc(0.55 * var(--vis)));
+  transition: background 160ms linear, box-shadow 160ms linear;
 }
 .surface.card.dissolve-card::before{
-  opacity: calc(0.15 + (var(--vis) * 0.85));
+  opacity: calc(0.75 * var(--vis));
+  transition: opacity 160ms linear;
+}
+
+.surface > *{ position: relative; }
+
+/* =======================
+   TYPOGRAPHY
+======================= */
+h1{
+  margin: 0 0 12px;
+  font-size: clamp(30px, 4vw, 54px);
+  letter-spacing: -0.8px;
+  line-height: 1.05;
+  font-weight: 900;
+}
+h2{
+  margin: 0 0 12px;
+  font-size: 28px;
+  letter-spacing: -0.4px;
+  line-height: 1.15;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+.lead{
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
+  font-size: 16px;
+  max-width: 90ch;
 }
 
 /* =======================
-   (…everything else from your existing CSS stays the same…)
-   NOTE: I kept your whole file CSS and only changed nav + added phone fixes below.
+   REVEAL ANIMATIONS
 ======================= */
+.reveal-title{
+  opacity: 0;
+  transform: translate3d(0, 28px, 0);
+  transition: opacity 700ms ease, transform 700ms cubic-bezier(.2,.8,.2,1);
+  will-change: opacity, transform;
+}
+.reveal-side{
+  opacity: 0;
+  transition: opacity 750ms ease, transform 750ms cubic-bezier(.2,.8,.2,1);
+  will-change: opacity, transform;
+}
+.from-left{ transform: translate3d(-72px, 10px, 0); }
+.from-right{ transform: translate3d(72px, 10px, 0); }
+.from-bottom{ transform: translate3d(0, 34px, 0); }
+
+.reveal-title.is-visible,
+.reveal-side.is-visible{
+  opacity: 1;
+  transform: translate3d(0,0,0);
+}
+
+/* =======================
+   HERO EXTRAS
+======================= */
+.kicker{
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255,138,43,0.12);
+  color: rgba(255,255,255,0.88);
+  font-weight: 900;
+  font-size: 12px;
+  letter-spacing: 0.3px;
+  margin-bottom: 12px;
+}
+.sublead{
+  margin: 0;
+  color: rgba(255,255,255,0.86);
+  line-height: 1.65;
+  font-size: 16px;
+  max-width: 90ch;
+}
+.emph{
+  margin-top: 16px;
+  padding: 14px 14px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.04);
+  color: var(--text);
+  font-weight: 900;
+  line-height: 1.6;
+}
+.emph{
+  position: relative;
+  box-shadow:
+    0 20px 70px rgba(0,0,0,0.55),
+    0 0 120px rgba(255,138,43,0.22);
+}
+
+
+/* =======================
+   BULLETS
+======================= */
+.bullets{
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+.bullets li{
+  padding: 12px 12px 12px 40px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.86);
+  line-height: 1.55;
+  position: relative;
+}
+.bullets li::before{
+  content: "";
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: rgba(255,138,43,0.92);
+  box-shadow: 0 10px 24px rgba(255,138,43,0.14);
+}
+
+/* =======================
+   ACCORDION
+======================= */
+.accordion{
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+.acc-item{
+  border-radius: 18px;
+  background: rgba(255,255,255,0.04);
+  overflow: hidden;
+}
+.acc-btn{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 16px 16px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  color: var(--text);
+  font-weight: 950;
+  font-size: 15px;
+  letter-spacing: 0.1px;
+  text-align: left;
+}
+.acc-btn .chev{
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.05);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  transition: transform 220ms ease;
+}
+.acc-panel{
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 260ms cubic-bezier(.2,.8,.2,1);
+}
+.acc-panel p{
+  margin: 0;
+  padding: 0 16px 16px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+.acc-item.open .acc-panel{ max-height: 420px; }
+.acc-item.open .chev{ transform: rotate(180deg); }
+
+/* =======================
+   PRICING
+======================= */
+.price-grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin-top: 12px;
+  max-width: 980px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.price{
+  border-radius: 18px;
+  background: rgba(255,255,255,0.04);
+  padding: 14px;
+  width: 100%;
+  max-width: 290px;
+  justify-self: center;
+}
+.price .name{
+  font-weight: 950;
+  color: rgba(255,255,255,0.92);
+  margin: 0 0 10px;
+  font-size: 14px;
+}
+.price .value{
+  margin: 0;
+  font-size: 18px;
+  font-weight: 990;
+  letter-spacing: -0.2px;
+  color: rgba(255,138,43,0.95);
+}
+
+/* =======================
+   WHY US
+======================= */
+.why{
+  margin-top: 12px;
+  display: grid;
+  gap: 10px;
+}
+.why .item{
+  padding: 14px 14px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.86);
+  line-height: 1.6;
+  font-weight: 800;
+}
 
 /* =======================
    DOTS (SLIDERS)
@@ -379,6 +683,7 @@ section{
 
 /* =======================
    SLIDER BASE (MOBILE ONLY)
+   IMPORTANT: No scroll-trap!
 ======================= */
 .slider{
   display: flex;
@@ -418,7 +723,7 @@ section{
 }
 
 /* =======================
-   REVIEWS
+   REVIEWS ✅ FIXED HEIGHT + PHOTO SAME HEIGHT ON DESKTOP
 ======================= */
 .review-slide{
   scroll-snap-align: center;
@@ -428,6 +733,8 @@ section{
   box-shadow: 0 18px 60px rgba(0,0,0,0.45);
   position: relative;
   overflow: hidden;
+
+  /* fallback */
   min-height: 320px;
 }
 .review-slide::before{
@@ -452,41 +759,133 @@ section{
 .review-inner{
   position: relative;
   padding: 24px;
+
   display: grid;
   grid-template-columns: 220px 1fr;
   gap: 18px;
+
+  /* default */
   align-items: start;
 }
 
 .review-photo{
   width: 220px;
+
+  /* default (mobile overrides will change anyway) */
   aspect-ratio: 1 / 1;
+
   border-radius: 22px;
   background: rgba(0,0,0,0.22);
   overflow: hidden;
+
+  /* padding look */
+  box-shadow: inset 0 0 0 10px rgba(255,255,255,0.03);
 }
 .review-photo img{
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
+  filter: contrast(1.02);
 }
+
 .review-name{
-  font-weight: 980;
-  letter-spacing: -0.3px;
+  font-weight: 900;
   font-size: 22px;
-  margin-bottom: 4px;
+  letter-spacing: -0.3px;
+  margin: 2px 0 6px;
+  text-transform: uppercase;
 }
 .review-role{
-  color: rgba(255,255,255,0.72);
-  font-weight: 850;
-  margin-bottom: 10px;
-}
-.review-text{
-  color: rgba(255,255,255,0.86);
-  line-height: 1.7;
+  color: rgba(255,138,43,0.95);
   font-weight: 800;
+  margin: 0 0 12px;
+  line-height: 1.35;
   font-size: 15px;
 }
+.review-text{
+  margin: 0;
+  color: rgba(255,255,255,0.80);
+  line-height: 1.7;
+  font-size: 15px;
+  white-space: pre-line;
+}
+
+/* =======================
+   FIXED BUTTONS
+======================= */
+.fab{
+  position: fixed;
+  bottom: 18px;
+  z-index: 2000;
+  width: 62px;
+  height: 62px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  box-shadow: 0 20px 70px rgba(0,0,0,0.55);
+  backdrop-filter: blur(10px);
+  transition: bottom 220ms ease, opacity 220ms ease;
+  border: 0;
+}
+.fab:active{ transform: translateY(var(--fab-shift)) scale(0.98); }
+.fab-left{ left: 18px; background: rgba(37,211,102,0.92); }
+.fab-right{ right: 18px; background: rgba(255,138,43,0.92); }
+.fab svg{ width: 30px; height: 30px; }
+
+/* =======================
+   FOOTER
+======================= */
+footer{
+  background: rgba(7,8,10,0.82);
+  backdrop-filter: blur(16px);
+}
+.footer-inner{
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 18px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  color: rgba(255,255,255,0.72);
+  font-weight: 700;
+  font-size: 14px;
+}
+.footer-contacts{
+  display:flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items:center;
+}
+.footer-contacts a{
+  color: rgba(255,255,255,0.82);
+  text-decoration: none;
+  font-weight: 800;
+}
+.footer-contacts a:hover{
+  color: rgba(255,255,255,0.94);
+  text-decoration: underline;
+  text-decoration-color: rgba(255,138,43,0.65);
+  text-underline-offset: 4px;
+}
+.facebook-link{
+  color: rgba(255,138,43,0.95) !important;
+  text-decoration: none !important;
+  font-weight: 900 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+.facebook-link:hover{
+  text-decoration: underline !important;
+  text-decoration-color: rgba(255,138,43,0.75) !important;
+}
+.footer-center{ justify-content:center; text-align:center; width:100%; }
+.footer-copy{ width:100%; }
 
 /* =======================
    RESPONSIVE
@@ -519,21 +918,21 @@ section{
   #tradesDots{ display:none; }
 }
 
-/* Desktop: fixed reviews card height + photo equals the card height */
+/* ✅ DESKTOP: fixed card height + photo equals the card height (with padding) */
 @media (min-width: 900px){
   .review-slide{
-    height: 360px;
+    height: 360px;            /* 👈 adjust: 340–420px */
     min-height: unset;
   }
 
   .review-inner{
     height: 100%;
-    align-items: stretch;
+    align-items: stretch;     /* 👈 allows photo + text column to fill height */
   }
 
   .review-photo{
-    height: 100%;
-    aspect-ratio: auto;
+    height: 100%;             /* 👈 photo equals card height */
+    aspect-ratio: auto;       /* 👈 stop forcing a square on desktop */
   }
 
   .review-photo img{
@@ -542,7 +941,7 @@ section{
   }
 }
 
-/* Mobile: sliders enabled (Trades + Reviews) */
+/* Mobile: sliders enabled (Trades + Reviews) WITHOUT vertical scroll trapping */
 @media (max-width: 899px){
   .slider{
     overflow-x: auto;
@@ -560,13 +959,15 @@ section{
 
     overscroll-behavior-x: contain;
     overscroll-behavior-y: auto;
+    
   }
 
-  #tradesSlider .trade-slide{
-    flex: 0 0 auto;
-    width: min(92vw, 420px);
-    scroll-snap-align: center;
-  }
+#tradesSlider .trade-slide{
+  flex: 0 0 auto;
+  width: min(92vw, 420px);     /* ✅ never wider than viewport */
+  scroll-snap-align: center;
+}
+
 
   #reviewsSlider .review-slide{
     flex: 0 0 auto;
@@ -577,6 +978,7 @@ section{
     min-height: unset;
   }
 
+  /* On mobile we can allow the photo to behave like before */
   .review-inner{
     grid-template-columns: 92px 1fr;
     align-items: center;
@@ -586,7 +988,7 @@ section{
     aspect-ratio: 1 / 1;
     border-radius: 18px;
     box-shadow: inset 0 0 0 6px rgba(255,255,255,0.03);
-    height: auto;
+    height: auto; /* keep square */
   }
 }
 
@@ -602,69 +1004,262 @@ section{
   .quote-mark{ width:56px; height:56px; }
 
   #tradesSlider{ padding: 10px 18px 14px; }
+
+  body.footer-in-view:not(.drawer-open) .fab{ bottom: 92px; }
+  .footer-stack{ flex-direction: column; align-items: center; gap: 10px; }
 }
 
-/* extra small */
 @media (max-width: 520px){
   .review-inner{ grid-template-columns: 1fr; gap: 12px; }
+
   .review-photo{
     width: 120px;
     aspect-ratio: 1 / 1;
     margin: 0 auto;
     border-radius: 22px;
   }
+
   .review-name{ text-align: center; font-size: 20px; }
   .review-role{ text-align: center; }
 }
 
-/* =======================
-   PHONE UX FIXES (NAV + SLIDERS)
-======================= */
-
-/* Prevent accidental horizontal page scroll without clipping slider cards */
-html, body{ overflow-x: hidden; }
-.wrap{ overflow-x: visible; } /* allow rounded corners/shadows to render */
-
-/* Keep content from sitting under the fixed nav */
-main.wrap{ padding-top: calc(18px + env(safe-area-inset-top)); }
-
-/* On phone: make sliders use the full available width and keep rounded corners visible */
-@media (max-width: 720px){
-  /* give the page full width on mobile */
-  main.wrap{ padding-left: 0; padding-right: 0; }
-
-  /* surfaces keep their padding, sliders should not double-pad */
-  .surface{ padding-left: 18px; padding-right: 18px; }
-
-  .slider{
-    padding: 0 0 14px;               /* no extra side padding */
-    scroll-padding-left: 18px;
-    scroll-padding-right: 18px;
-    gap: 16px;
-    touch-action: pan-x pinch-zoom;  /* help swipe on mobile */
-  }
-
-  /* each card becomes (almost) full width of the content area */
-  #tradesSlider .trade-slide,
-  #reviewsSlider .review-slide{
-    width: calc(100vw - 36px);       /* full width minus 18px+18px */
-    max-width: calc(100vw - 36px);
-  }
-
-  /* ensure the first/last card keeps its rounded corners visible */
-  #tradesSlider::before,
-  #reviewsSlider::before{
-    content:"";
-    flex: 0 0 18px;                  /* left inset */
-  }
-  #tradesSlider::after,
-  #reviewsSlider::after{
-    content:"";
-    flex: 0 0 18px;                  /* right inset */
+/* Desktop UX for horizontal sliders */
+@media (min-width: 900px){
+  .slider{ cursor: grab; }
+  .slider.dragging{
+    cursor: grabbing;
+    user-select: none;
   }
 }
-</style>
 
+/* DESKTOP: reviews slider has a centered viewport + fixed card width */
+@media (min-width: 900px){
+  #reviewsSlider{
+    display: flex;
+    gap: 18px;
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+
+    max-width: 980px;
+    margin: 0 auto;
+
+    padding: 18px 18px 22px;
+    scroll-padding-left: 18px;
+    scroll-padding-right: 18px;
+
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+  #reviewsSlider::-webkit-scrollbar{ display:none; }
+
+  #reviewsSlider .review-slide{
+    flex: 0 0 clamp(720px, 80vw, 860px);
+    width: clamp(720px, 80vw, 860px);
+    min-width: unset;
+    max-width: unset;
+  }
+}
+
+/* =======================
+   HERO (PROMO, NOT A CARD)
+======================= */
+#hero .surface.hero{
+  padding-top: 34px;
+  padding-bottom: 26px;
+  position: relative;
+}
+
+/* soft orange glow just for hero */
+#hero .surface.hero::before{
+  content:"";
+  position:absolute;
+  inset: -40px -20px -60px -20px;
+  background:
+    radial-gradient(900px 420px at 12% 8%, rgba(255,138,43,0.22), transparent 60%),
+    radial-gradient(800px 420px at 92% 42%, rgba(255,106,0,0.14), transparent 62%);
+  pointer-events:none;
+  z-index: -1;
+  filter: blur(0.2px);
+  opacity: .95;
+}
+
+.hero-top{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.hero-badges{
+  display:flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.hero-badge{
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,138,43,0.14);
+  color: rgba(255,255,255,0.88);
+  font-weight: 900;
+  font-size: 12px;
+  letter-spacing: 0.2px;
+}
+
+.hero-title{
+  margin: 0 0 10px;
+  font-weight: 950;
+  letter-spacing: -1px;
+  line-height: 1.05;
+  font-size: clamp(34px, 4.6vw, 62px);
+}
+
+.hero-br{ display:none; }
+
+.outline{
+  color: transparent;
+  -webkit-text-stroke: 2px rgba(255,255,255,0.92);
+  text-stroke: 2px rgba(255,255,255,0.92);
+  letter-spacing: -0.5px;
+}
+.accent{
+  color: rgba(255,138,43,0.98);
+  text-shadow: 0 18px 55px rgba(255,138,43,0.15);
+}
+
+.hero-lead{
+  margin: 0;
+  max-width: 78ch;
+  color: rgba(255,255,255,0.86);
+  line-height: 1.7;
+  font-size: 16px;
+}
+.hero-muted{
+  display: inline-block;
+  margin-left: 6px;
+  color: rgba(255,255,255,0.70);
+}
+
+/* points list */
+.hero-points{
+  margin-top: 14px;
+  display: grid;
+  gap: 10px;
+  max-width: 74ch;
+}
+.hero-point{
+  display:flex;
+  gap: 12px;
+  align-items:flex-start;
+  padding: 12px 12px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.04);
+}
+.hero-point .dot{
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255,138,43,0.95);
+  box-shadow: 0 12px 26px rgba(255,138,43,0.18);
+  margin-top: 6px;
+  flex: 0 0 auto;
+}
+
+/* steps line */
+.hero-steps{
+  margin-top: 16px;
+  padding: 14px 14px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.04);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items:center;
+  font-weight: 950;
+  color: rgba(255,255,255,0.92);
+}
+.hero-steps .sep{
+  opacity: 0.55;
+  font-weight: 900;
+}
+
+/* CTA buttons (optional, they match your floating buttons) */
+.hero-cta{
+  margin-top: 14px;
+  display:flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.hero-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding: 12px 16px;
+  border-radius: 16px;
+  text-decoration:none;
+  font-weight: 950;
+  letter-spacing: 0.2px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.92);
+  transition: transform 160ms ease, background 160ms ease;
+}
+.hero-btn:hover{
+  transform: translateY(-1px);
+  background: rgba(255,255,255,0.08);
+}
+.hero-btn-whatsapp{
+  border-color: rgba(37,211,102,0.22);
+  box-shadow: 0 18px 55px rgba(0,0,0,0.35);
+}
+.hero-btn-call{
+  border-color: rgba(255,138,43,0.22);
+  box-shadow: 0 18px 55px rgba(0,0,0,0.35);
+}
+
+/* note under CTA */
+.hero-note{
+  margin-top: 14px;
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: rgba(255,138,43,0.10);
+  border: 1px solid rgba(255,138,43,0.16);
+  color: rgba(255,255,255,0.90);
+  font-weight: 850;
+  max-width: 78ch;
+}
+.hero-note .pulse{
+  width: 10px; height: 10px; border-radius: 999px;
+  background: rgba(255,138,43,0.95);
+  box-shadow: 0 0 0 0 rgba(255,138,43,0.35);
+  animation: heroPulse 1.6s ease-in-out infinite;
+}
+@keyframes heroPulse{
+  0%{ box-shadow: 0 0 0 0 rgba(255,138,43,0.38); }
+  70%{ box-shadow: 0 0 0 10px rgba(255,138,43,0.0); }
+  100%{ box-shadow: 0 0 0 0 rgba(255,138,43,0.0); }
+}
+
+/* mobile refinements */
+@media (max-width: 720px){
+  #hero .surface.hero{ padding-top: 24px; }
+  .hero-br{ display:block; }
+  .outline{ -webkit-text-stroke: 1.6px rgba(255,255,255,0.92); }
+  .hero-title{ font-size: clamp(30px, 8.6vw, 42px); }
+  .hero-steps{ font-size: 14px; }
+}
+
+</style>
 
 
 
@@ -1330,37 +1925,39 @@ I can get my Blue CSCS card. This helped me get better site access.”</p>
       body.classList.toggle('footer-in-view', shouldJump);
     }
 
-    function openDrawer(){
-      if (!hamburger || !drawer || !overlay) return;
+function openDrawer(){
+  if (!hamburger || !drawer || !overlay) return;
 
-      body.classList.add('drawer-open');
-      hamburger.setAttribute('aria-expanded','true');
+  body.classList.add('drawer-open');
+  hamburger.setAttribute('aria-expanded','true');
 
-      drawer.setAttribute('aria-hidden','false');
-      overlay.setAttribute('aria-hidden','false');
+  drawer.setAttribute('aria-hidden','false');
+  overlay.setAttribute('aria-hidden','false');
 
-      // focus first control in dialog
-      closeBtn?.focus();
+  // ✅ focus first control in dialog
+  closeBtn?.focus();
 
-      body.classList.remove('footer-in-view');
-    }
+  body.classList.remove('footer-in-view');
+}
 
-    function closeDrawer(){
-      if (!hamburger || !drawer || !overlay) return;
 
-      // move focus OUT of the drawer before hiding it
-      if (drawer.contains(document.activeElement)) {
-        hamburger.focus();
-      }
+function closeDrawer(){
+  if (!hamburger || !drawer || !overlay) return;
 
-      body.classList.remove('drawer-open');
-      hamburger.setAttribute('aria-expanded','false');
+  // ✅ move focus OUT of the drawer before hiding it
+  if (drawer.contains(document.activeElement)) {
+    hamburger.focus();
+  }
 
-      drawer.setAttribute('aria-hidden','true');
-      overlay.setAttribute('aria-hidden','true');
+  body.classList.remove('drawer-open');
+  hamburger.setAttribute('aria-expanded','false');
 
-      requestAnimationFrame(recomputeFooterState);
-    }
+  drawer.setAttribute('aria-hidden','true');
+  overlay.setAttribute('aria-hidden','true');
+
+  requestAnimationFrame(recomputeFooterState);
+}
+
 
     hamburger?.addEventListener('click', () => {
       body.classList.contains('drawer-open') ? closeDrawer() : openDrawer();
@@ -1530,8 +2127,51 @@ I can get my Blue CSCS card. This helped me get better site access.”</p>
 
     setLang(getLang());
 
-    // ===== Sliders (mobile swipe is native; desktop drag-scroll below) =====
-    // NOTE: do NOT preventDefault() on touchmove — it breaks native swipe scrolling.
+    // ===== Smart swipe for sliders =====
+    function smartSliderSwipe(el){
+  if(!el) return;
+
+  let sx = 0, sy = 0;
+  let decided = false;
+  let isHorizontal = false;
+
+  el.addEventListener("touchstart", (e) => {
+    if (!e.touches || e.touches.length !== 1) return;
+    sx = e.touches[0].clientX;
+    sy = e.touches[0].clientY;
+    decided = false;
+    isHorizontal = false;
+  }, { passive: true });
+
+  el.addEventListener("touchmove", (e) => {
+    if (!e.touches || e.touches.length !== 1) return;
+
+    // if slider can't scroll horizontally, never interfere
+    if (el.scrollWidth <= el.clientWidth + 1) return;
+
+    const dx = e.touches[0].clientX - sx;
+    const dy = e.touches[0].clientY - sy;
+
+    // decide direction only after small movement
+    if (!decided) {
+      if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
+      decided = true;
+      isHorizontal = Math.abs(dx) > Math.abs(dy);
+    }
+
+    // IMPORTANT:
+    // Only prevent default if horizontal AND only on iOS-like browsers that need it.
+    // Otherwise let the browser handle native scrolling.
+    if (isHorizontal) {
+      // don't block if it would also block natural horizontal scroll
+      // (we just stop the page from stealing the gesture)
+      e.preventDefault();
+    }
+  }, { passive: false });
+}
+
+smartSliderSwipe(document.getElementById("tradesSlider"));
+smartSliderSwipe(document.getElementById("reviewsSlider"));
 
     // ===== Drag scroll (desktop) =====
     function enableDragScroll(el){
@@ -1575,7 +2215,6 @@ I can get my Blue CSCS card. This helped me get better site access.”</p>
   }); // DOMContentLoaded
 })();
 </script>
-
 
 </body>
 </html>
