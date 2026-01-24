@@ -1418,6 +1418,62 @@ body.drawer-open .nav{
   }
 }
 
+  /* =========================================
+   PHONE: BIGGER + ALWAYS CENTERED cards
+   (works for trades + reviews)
+========================================= */
+@media (max-width: 720px){
+
+  /* Choose how wide the card should be */
+  :root{
+    --cardW: 94vw;          /* make bigger/smaller (try 96vw, 92vw, etc.) */
+    --cardMax: 520px;       /* prevents too huge cards on big phones */
+  }
+
+  /* Slider becomes a centered viewport */
+  #tradesSlider,
+  #reviewsSlider{
+    width: 100% !important;
+
+    /* This is the trick: padding = (viewport - cardWidth)/2 */
+    padding-left: calc((100vw - min(var(--cardW), var(--cardMax))) / 2) !important;
+    padding-right: calc((100vw - min(var(--cardW), var(--cardMax))) / 2) !important;
+
+    scroll-padding-left: calc((100vw - min(var(--cardW), var(--cardMax))) / 2) !important;
+    scroll-padding-right: calc((100vw - min(var(--cardW), var(--cardMax))) / 2) !important;
+
+    gap: 14px !important;
+
+    scroll-snap-type: x mandatory !important;
+  }
+
+  /* Each card width is controlled and snaps to CENTER */
+  #tradesSlider .trade-slide,
+  #reviewsSlider .review-slide{
+    width: min(var(--cardW), var(--cardMax)) !important;
+    flex: 0 0 auto !important;
+
+    scroll-snap-align: center !important;
+    scroll-snap-stop: always;
+  }
+
+  /* Trades: keep height proportional automatically (image ratio already exists).
+     If you want the whole trade card to look taller, increase title padding: */
+  .trade-title{
+    padding: 16px 16px 18px !important;
+    font-size: 16px !important;
+  }
+
+  /* Reviews: DON'T force fixed height; let it scale naturally with content.
+     Just make it feel more premium: */
+  .review-slide{
+    border-radius: 30px !important;
+  }
+  .review-inner{
+    padding: 22px !important;
+  }
+}
+
 </style>
 
 
@@ -2052,14 +2108,17 @@ function initSwipeSlider(sliderEl, dotsEl, opts = {}){
     b.className = 'dot' + (i === 0 ? ' active' : '');
     b.setAttribute('aria-label', `Slide ${i + 1}`);
 b.addEventListener('click', () => {
-  const cs = getComputedStyle(sliderEl);
-  const padL = parseFloat(cs.paddingLeft) || 0;
+  const sliderRect = sliderEl.getBoundingClientRect();
+  const slideRect  = slides[i].getBoundingClientRect();
 
-  // exact left position so it NEVER shifts
-  const targetLeft = slides[i].offsetLeft - padL;
+  // current scrollLeft + (slide center - slider center)
+  const sliderCenter = sliderRect.left + sliderRect.width / 2;
+  const slideCenter  = slideRect.left + slideRect.width / 2;
 
-  sliderEl.scrollTo({ left: targetLeft, behavior: 'smooth' });
+  const nextLeft = sliderEl.scrollLeft + (slideCenter - sliderCenter);
+  sliderEl.scrollTo({ left: nextLeft, behavior: 'smooth' });
 });
+
 
     dotsEl.appendChild(b);
     return b;
