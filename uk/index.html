@@ -1343,6 +1343,37 @@ body.drawer-open .nav{
   #reviewsSlider.dragging{ cursor: grabbing; user-select:none; }
 }
 
+  /* =========================
+   PHONE: stable 1-card viewport (NO shifting on dot click)
+========================= */
+@media (max-width: 720px){
+
+  /* SLIDER viewport padding so corners are visible */
+  #tradesSlider,
+  #reviewsSlider{
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    scroll-padding-left: 16px !important;
+    scroll-padding-right: 16px !important;
+    gap: 14px !important;
+  }
+
+  /* 1 card takes ALL possible space (minus the viewport padding) */
+  #tradesSlider .trade-slide,
+  #reviewsSlider .review-slide{
+    flex: 0 0 calc(100% - 32px) !important;
+    width: calc(100% - 32px) !important;
+    scroll-snap-align: start !important; /* IMPORTANT: was center -> causes shifting */
+    scroll-snap-stop: always;
+  }
+
+  /* make sure slider is snapping correctly */
+  #tradesSlider,
+  #reviewsSlider{
+    scroll-snap-type: x mandatory !important;
+  }
+}
+
 </style>
 
 
@@ -1976,9 +2007,16 @@ function initSwipeSlider(sliderEl, dotsEl, opts = {}){
     b.type = 'button';
     b.className = 'dot' + (i === 0 ? ' active' : '');
     b.setAttribute('aria-label', `Slide ${i + 1}`);
-    b.addEventListener('click', () => {
-      slides[i].scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
-    });
+b.addEventListener('click', () => {
+  const cs = getComputedStyle(sliderEl);
+  const padL = parseFloat(cs.paddingLeft) || 0;
+
+  // exact left position so it NEVER shifts
+  const targetLeft = slides[i].offsetLeft - padL;
+
+  sliderEl.scrollTo({ left: targetLeft, behavior: 'smooth' });
+});
+
     dotsEl.appendChild(b);
     return b;
   });
