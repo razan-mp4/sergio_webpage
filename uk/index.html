@@ -916,53 +916,7 @@ footer{
   }
 }
 
-/* Mobile: sliders enabled (Trades + Reviews) WITHOUT vertical scroll trapping */
-@media (max-width: 899px){
-  .slider{
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
 
-    scroll-snap-type: x mandatory;
-    scroll-behavior: smooth;
-
-    padding: 18px 18px 22px;
-    scroll-padding-left: 18px;
-    scroll-padding-right: 18px;
-
-    scrollbar-width: none;
-
-    overscroll-behavior-x: contain;
-    overscroll-behavior-y: auto;
-  }
-
-  #tradesSlider .trade-slide{
-    flex: 0 0 auto;
-    width: min(92vw, 420px);
-    scroll-snap-align: center;
-  }
-
-  #reviewsSlider .review-slide{
-    flex: 0 0 auto;
-    width: min(92vw, 860px);
-    scroll-snap-align: center;
-    min-width: unset;
-    max-width: unset;
-    min-height: unset;
-  }
-
-  .review-inner{
-    grid-template-columns: 92px 1fr;
-    align-items: center;
-  }
-  .review-photo{
-    width: 92px;
-    aspect-ratio: 1 / 1;
-    border-radius: 18px;
-    box-shadow: inset 0 0 0 6px rgba(255,255,255,0.03);
-    height: auto;
-  }
-}
 
 /* Smaller UI tweaks */
 @media (max-width: 720px){
@@ -1261,51 +1215,41 @@ body.drawer-open .nav{
   transform: translateY(-120%) !important;
 }
 
-/* 3) SLIDERS: cards take full available width on phone and never crop corners */
-@media (max-width: 720px){
-  /* use wrap padding as gutter */
-  #tradesSlider,
-  #reviewsSlider{
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-  }
+/* =========================================================
+   MOBILE: disable sliders completely, show only first card
+========================================================= */
+@media (max-width: 899px){
 
+  /* no horizontal scrolling / no snapping */
   .slider{
-    gap: 14px !important;
-
-    overflow-x: auto !important;
-    overflow-y: visible !important;
-
-    padding: 10px 0 16px !important;
-
-    scroll-snap-type: x mandatory !important;
-    scroll-padding-left: 14px !important;
-    scroll-padding-right: 14px !important;
-
-    -webkit-overflow-scrolling: touch;
-
-    /* IMPORTANT: allow horizontal swipe */
-    touch-action: pan-x !important;
-    overscroll-behavior-x: contain;
+    overflow: hidden !important;
+    scroll-snap-type: none !important;
+    scroll-behavior: auto !important;
+    -webkit-overflow-scrolling: auto !important;
+    touch-action: auto !important;
+    padding: 0 !important;
   }
 
-  /* Trades: full width */
-  #tradesSlider .trade-slide{
-    flex: 0 0 auto !important;
+  /* make first card fill the available width nicely */
+  #tradesSlider .trade-slide,
+  #reviewsSlider .review-slide{
     width: 100% !important;
     max-width: none !important;
-    scroll-snap-align: start !important;
+    min-width: 0 !important;
+    flex: none !important;
+    scroll-snap-align: none !important;
   }
 
-  /* Reviews: full width */
-  #reviewsSlider .review-slide{
-    flex: 0 0 auto !important;
-    width: 100% !important;
-    min-width: unset !important;
-    max-width: unset !important;
-    scroll-snap-align: start !important;
+  /* hide every slide except the first one */
+  #tradesSlider .trade-slide:not(:first-child),
+  #reviewsSlider .review-slide:not(:first-child){
+    display: none !important;
   }
+
+  /* hide dots on mobile (no slider) */
+  .dots{ display: none !important; }
 }
+
 
 /* keep your existing smaller breakpoint tweak */
 @media (max-width: 520px){
@@ -1355,53 +1299,7 @@ body.drawer-open .nav{
   transform: translateY(-120%) !important;
 }
 
-/* 3) SLIDERS: cards take full available width on phone and never crop corners */
-@media (max-width: 720px){
-  /* use the wrap padding as the “gutter”, don't double-pad sliders */
-  #tradesSlider,
-  #reviewsSlider{
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-  }
 
-  /* let shadows/rounded corners breathe (no clipping vertically) */
-  .slider{
-    gap: 14px !important;
-
-    /* keep horizontal scrolling, but do NOT clip vertical shadow/corners */
-    overflow-x: auto !important;
-    overflow-y: visible !important;
-
-    /* remove the extra side padding that made cards exceed the visible area */
-    padding: 10px 0 16px !important;
-
-    /* snapping still works */
-    scroll-snap-type: x mandatory !important;
-    scroll-padding-left: 14px !important;
-    scroll-padding-right: 14px !important;
-
-    /* better touch behavior */
-    -webkit-overflow-scrolling: touch;
-    touch-action: pan-x;
-  }
-
-  /* Trades: full width inside the wrap (so corners are always visible) */
-  #tradesSlider .trade-slide{
-    flex: 0 0 auto !important;
-    width: calc(100%);              /* full width of the slider viewport inside wrap */
-    max-width: none !important;
-    scroll-snap-align: start !important;
-  }
-
-  /* Reviews: full width too */
-  #reviewsSlider .review-slide{
-    flex: 0 0 auto !important;
-    width: 100% !important;
-    min-width: unset !important;
-    max-width: unset !important;
-    scroll-snap-align: start !important;
-  }
-}
 
 /* keep your existing smaller breakpoints working nicely */
 @media (max-width: 520px){
@@ -2028,108 +1926,7 @@ I can get my Blue CSCS card. This helped me get better site access.”</p>
     document.documentElement.style.setProperty('--navh', h + 'px');
   }
 
-    // Touch-swipe helper (fallback) — now actually scrolls horizontally
-  function smartSliderSwipe(el){
-    if(!el) return;
-
-    let sx = 0, sy = 0;
-    let startScroll = 0;
-    let decided = false;
-    let isHorizontal = false;
-
-    el.addEventListener("touchstart", (e) => {
-      if (!e.touches || e.touches.length !== 1) return;
-      sx = e.touches[0].clientX;
-      sy = e.touches[0].clientY;
-      startScroll = el.scrollLeft;
-      decided = false;
-      isHorizontal = false;
-    }, { passive: true });
-
-    el.addEventListener("touchmove", (e) => {
-      if (!e.touches || e.touches.length !== 1) return;
-      if (el.scrollWidth <= el.clientWidth + 1) return;
-
-      const dx = e.touches[0].clientX - sx;
-      const dy = e.touches[0].clientY - sy;
-
-      if (!decided) {
-        if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
-        decided = true;
-        isHorizontal = Math.abs(dx) > Math.abs(dy);
-      }
-
-      if (isHorizontal) {
-        e.preventDefault();
-        el.scrollLeft = startScroll - dx;
-      }
-    }, { passive: false });
-  }
-
-  // Reliable phone swipe using Pointer Events — force pan-x
-  function enablePhonePointerSwipe(el){
-    if (!el) return;
-
-    // ensure horizontal panning is allowed
-    el.style.touchAction = 'pan-x';
-
-    let down = false;
-    let startX = 0, startY = 0;
-    let startScroll = 0;
-    let decided = false;
-    let horizontal = false;
-    let pointerId = null;
-
-    const THRESH = 8;
-
-    el.addEventListener('pointerdown', (e) => {
-      if (!isPhoneView()) return;
-      if (e.pointerType !== 'touch') return;
-
-      if (el.scrollWidth <= el.clientWidth + 1) return;
-
-      down = true;
-      decided = false;
-      horizontal = false;
-      pointerId = e.pointerId;
-      startX = e.clientX;
-      startY = e.clientY;
-      startScroll = el.scrollLeft;
-    }, { passive: true });
-
-    el.addEventListener('pointermove', (e) => {
-      if (!down || !isPhoneView()) return;
-      if (pointerId !== e.pointerId) return;
-
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
-
-      if (!decided) {
-        if (Math.abs(dx) < THRESH && Math.abs(dy) < THRESH) return;
-        decided = true;
-        horizontal = Math.abs(dx) > Math.abs(dy);
-        if (horizontal) {
-          try { el.setPointerCapture(pointerId); } catch {}
-        }
-      }
-
-      if (horizontal) {
-        e.preventDefault();
-        el.scrollLeft = startScroll - dx;
-      }
-    }, { passive: false });
-
-    const end = () => {
-      down = false;
-      decided = false;
-      horizontal = false;
-      pointerId = null;
-    };
-
-    el.addEventListener('pointerup', end, { passive: true });
-    el.addEventListener('pointercancel', end, { passive: true });
-    el.addEventListener('lostpointercapture', end, { passive: true });
-  }
+  
 
   // Desktop drag-scroll for sliders
   function enableDragScroll(el){
@@ -2297,62 +2094,7 @@ I can get my Blue CSCS card. This helped me get better site access.”</p>
       });
     });
 
-    // ===== Slider dots =====
-    function setupDots(sliderId, dotsId) {
-      const slider = document.getElementById(sliderId);
-      const dotsWrap = document.getElementById(dotsId);
-      if (!slider || !dotsWrap) return;
-
-      const slides = Array.from(slider.children);
-
-      function buildDots() {
-        dotsWrap.innerHTML = '';
-        slides.forEach((_, i) => {
-          const d = document.createElement('div');
-          d.className = 'dot' + (i === 0 ? ' active' : '');
-          d.addEventListener('click', () => {
-            slides[i].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-          });
-          dotsWrap.appendChild(d);
-        });
-      }
-
-      function setActiveDot(index) {
-        const dots = Array.from(dotsWrap.children);
-        dots.forEach((d, i) => d.classList.toggle('active', i === index));
-      }
-
-      function currentSlideIndex() {
-        const sRect = slider.getBoundingClientRect();
-        const sCenter = sRect.left + sRect.width / 2;
-
-        let bestIdx = 0;
-        let bestDist = Infinity;
-
-        slides.forEach((s, i) => {
-          const r = s.getBoundingClientRect();
-          const c = r.left + r.width / 2;
-          const dist = Math.abs(c - sCenter);
-          if (dist < bestDist) { bestDist = dist; bestIdx = i; }
-        });
-
-        return bestIdx;
-      }
-
-      buildDots();
-
-      let raf = null;
-      slider.addEventListener('scroll', () => {
-        if (raf) cancelAnimationFrame(raf);
-        raf = requestAnimationFrame(() => setActiveDot(currentSlideIndex()));
-      });
-
-      window.addEventListener('resize', () => setActiveDot(currentSlideIndex()));
-      setActiveDot(0);
-    }
-
-    setupDots('tradesSlider', 'tradesDots');
-    setupDots('reviewsSlider', 'reviewsDots');
+    
 
     // ===== Footer FAB jump logic =====
     window.addEventListener('scroll', recomputeFooterState, { passive: true });
@@ -2423,21 +2165,6 @@ I can get my Blue CSCS card. This helped me get better site access.”</p>
 
     setLang(getLang());
 
-    // ===== Swipe / drag for sliders =====
-    const tradesSlider  = document.getElementById('tradesSlider');
-    const reviewsSlider = document.getElementById('reviewsSlider');
-
-    // Keep your original touch-swipe logic (fallback)
-    smartSliderSwipe(tradesSlider);
-    smartSliderSwipe(reviewsSlider);
-
-    // Add the reliable phone swipe (only acts on phone + touch pointers)
-    enablePhonePointerSwipe(tradesSlider);
-    enablePhonePointerSwipe(reviewsSlider);
-
-    // Desktop drag scroll
-    enableDragScroll(reviewsSlider);
-    enableDragScroll(tradesSlider);
 
   }); // DOMContentLoaded
 })();
