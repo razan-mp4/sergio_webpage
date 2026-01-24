@@ -658,6 +658,20 @@ h2{
 /* =========================
    DOTS — FORCE PERFECT CIRCLES
 ========================= */
+/* =========================
+   DOTS — CENTER & SPACING FIX
+========================= */
+
+.dots{
+  display: flex;
+  justify-content: center;   /* center horizontally */
+  align-items: center;
+
+  gap: 10px;                 /* space between dots */
+
+  margin: 14px auto 0;       /* center container under slider */
+  width: 100%;
+}
 
 .dots .dot{
   all: unset;                 /* 🔥 nukes ALL button defaults */
