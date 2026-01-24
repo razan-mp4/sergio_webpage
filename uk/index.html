@@ -697,11 +697,28 @@ h2{
    SLIDER BASE
    IMPORTANT: No vertical scroll-trap!
 ========================================================= */
+/* =========================================================
+   SLIDER — allow vertical page scroll + horizontal swipe
+========================================================= */
 .slider{
   display: flex;
   gap: 18px;
+
+  overflow-x: auto;
+  overflow-y: visible;          /* 🔥 allow vertical scroll */
+
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+
+  scrollbar-width: none;
+
+  touch-action: pan-x pan-y;    /* 🔥 allow BOTH directions */
 }
 .slider::-webkit-scrollbar{ display:none; }
+
 
 /* =========================================================
    TRADES
