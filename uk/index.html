@@ -1215,40 +1215,6 @@ body.drawer-open .nav{
   transform: translateY(-120%) !important;
 }
 
-/* =========================================================
-   MOBILE: disable sliders completely, show only first card
-========================================================= */
-@media (max-width: 899px){
-
-  /* no horizontal scrolling / no snapping */
-  .slider{
-    overflow: hidden !important;
-    scroll-snap-type: none !important;
-    scroll-behavior: auto !important;
-    -webkit-overflow-scrolling: auto !important;
-    touch-action: auto !important;
-    padding: 0 !important;
-  }
-
-  /* make first card fill the available width nicely */
-  #tradesSlider .trade-slide,
-  #reviewsSlider .review-slide{
-    width: 100% !important;
-    max-width: none !important;
-    min-width: 0 !important;
-    flex: none !important;
-    scroll-snap-align: none !important;
-  }
-
-  /* hide every slide except the first one */
-  #tradesSlider .trade-slide:not(:first-child),
-  #reviewsSlider .review-slide:not(:first-child){
-    display: none !important;
-  }
-
-  /* hide dots on mobile (no slider) */
-  .dots{ display: none !important; }
-}
 
 
 /* keep your existing smaller breakpoint tweak */
@@ -1308,6 +1274,75 @@ body.drawer-open .nav{
     scroll-padding-right: 14px !important;
   }
 }
+
+  /* =========================
+   SLIDERS: 1 card per view + swipe + dots
+   (Trades = phone only, Reviews = phone + desktop)
+========================= */
+
+/* Base slider behavior */
+.slider{
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  touch-action: pan-x;
+}
+.slider::-webkit-scrollbar{ display:none; }
+
+/* ---- TRADES (PHONE): 1 card per view ---- */
+@media (max-width: 720px){
+  #tradesSlider{
+    padding: 10px 18px 14px;            /* space so corners are visible */
+    scroll-padding-left: 18px;
+    scroll-padding-right: 18px;
+    gap: 14px;
+  }
+
+  #tradesSlider .trade-slide{
+    flex: 0 0 calc(100% - 36px);        /* 1 card on screen */
+    width: calc(100% - 36px);
+    scroll-snap-align: start;
+  }
+
+  /* show dots on phone */
+  #tradesDots, #reviewsDots{ display:flex; }
+}
+
+/* ---- TRADES (DESKTOP): keep your current grid/wrap (no dots) ---- */
+@media (min-width: 900px){
+  #tradesDots{ display:none; }
+}
+
+/* ---- REVIEWS (PHONE + DESKTOP): 1 card per view ---- */
+#reviewsSlider{
+  /* make the “viewport” centered so the card position stays the same */
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 18px 18px 22px;
+  scroll-padding-left: 18px;
+  scroll-padding-right: 18px;
+  gap: 18px;
+}
+#reviewsSlider .review-slide{
+  flex: 0 0 100%;                       /* always 1 card */
+  width: 100%;
+  min-width: 0;                         /* override old min-width rules */
+  scroll-snap-align: start;
+}
+
+/* Dots should be visible for reviews on desktop too */
+#reviewsDots{ display:flex; }
+
+/* Optional: nicer drag cursor on desktop */
+@media (min-width: 900px){
+  #reviewsSlider{ cursor: grab; }
+  #reviewsSlider.dragging{ cursor: grabbing; user-select:none; }
+}
+
 </style>
 
 
@@ -1927,6 +1962,47 @@ I can get my Blue CSCS card. This helped me get better site access.”</p>
   }
 
   
+function initSwipeSlider(sliderEl, dotsEl, opts = {}){
+  if (!sliderEl || !dotsEl) return;
+
+  const slides = Array.from(sliderEl.children).filter(el =>
+    el.classList.contains('trade-slide') || el.classList.contains('review-slide')
+  );
+
+  // Build dots
+  dotsEl.innerHTML = '';
+  const dots = slides.map((_, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'dot' + (i === 0 ? ' active' : '');
+    b.setAttribute('aria-label', `Slide ${i + 1}`);
+    b.addEventListener('click', () => {
+      slides[i].scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
+    });
+    dotsEl.appendChild(b);
+    return b;
+  });
+
+  // Observe which slide is “active”
+  const io = new IntersectionObserver((entries) => {
+    // pick the most visible slide
+    let best = null;
+    for (const e of entries){
+      if (!best || e.intersectionRatio > best.intersectionRatio) best = e;
+    }
+    if (!best) return;
+
+    const idx = slides.indexOf(best.target);
+    if (idx >= 0){
+      dots.forEach((d, j) => d.classList.toggle('active', j === idx));
+    }
+  }, { root: sliderEl, threshold: [0.35, 0.5, 0.65, 0.8] });
+
+  slides.forEach(s => io.observe(s));
+
+  // Optional desktop drag-scroll
+  if (opts.drag) enableDragScroll(sliderEl);
+}
 
   // Desktop drag-scroll for sliders
   function enableDragScroll(el){
@@ -2165,6 +2241,18 @@ I can get my Blue CSCS card. This helped me get better site access.”</p>
 
     setLang(getLang());
 
+// ===== Sliders (Trades + Reviews) =====
+const tradesSlider = document.getElementById('tradesSlider');
+const tradesDots   = document.getElementById('tradesDots');
+
+const reviewsSlider = document.getElementById('reviewsSlider');
+const reviewsDots   = document.getElementById('reviewsDots');
+
+// Trades: swipe on phone (dots auto-hide on desktop via CSS)
+initSwipeSlider(tradesSlider, tradesDots, { drag: false });
+
+// Reviews: swipe on phone + desktop + allow drag on desktop
+initSwipeSlider(reviewsSlider, reviewsDots, { drag: true });
 
   }); // DOMContentLoaded
 })();
