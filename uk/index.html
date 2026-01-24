@@ -4,7 +4,7 @@
   <script>document.documentElement.classList.add('js');</script>
 
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>NVQ + CSCS / IPAF — Швидко та легко</title>
   <meta name="description" content="Отримай CSCS & IPAF Card без навчання. Офіційна оцінка вашого реального досвіду в будівництві." />
 
@@ -145,7 +145,7 @@ body::after{
 .nav{
   position: sticky;
   top: 0;
-  z-index: 1000;
+  z-index: 1500;
   height: var(--navh);
   backdrop-filter: blur(16px);
   background: rgba(7,8,10,0.70);
@@ -317,7 +317,7 @@ body::after{
   gap: 14px;
   overflow-y: auto;                 /* ✅ scroll inside drawer */
   -webkit-overflow-scrolling: touch;
-  padding-bottom: max(18px, env(safe-area-inset-bottom));
+  padding-bottom: calc(max(18px, env(safe-area-inset-bottom)) + 56px);
 }
 
 .drawer-top{
@@ -959,7 +959,7 @@ footer{
 
     overscroll-behavior-x: contain;
     overscroll-behavior-y: auto;
-    touch-action: pan-y;
+    
   }
 
 #tradesSlider .trade-slide{
@@ -1925,23 +1925,39 @@ I can get my Blue CSCS card. This helped me get better site access.”</p>
       body.classList.toggle('footer-in-view', shouldJump);
     }
 
-    function openDrawer(){
-      if (!hamburger || !drawer || !overlay) return;
-      body.classList.add('drawer-open');
-      hamburger.setAttribute('aria-expanded','true');
-      drawer.setAttribute('aria-hidden','false');
-      overlay.setAttribute('aria-hidden','false');
-      body.classList.remove('footer-in-view');
-    }
+function openDrawer(){
+  if (!hamburger || !drawer || !overlay) return;
 
-    function closeDrawer(){
-      if (!hamburger || !drawer || !overlay) return;
-      body.classList.remove('drawer-open');
-      hamburger.setAttribute('aria-expanded','false');
-      drawer.setAttribute('aria-hidden','true');
-      overlay.setAttribute('aria-hidden','true');
-      requestAnimationFrame(recomputeFooterState);
-    }
+  body.classList.add('drawer-open');
+  hamburger.setAttribute('aria-expanded','true');
+
+  drawer.setAttribute('aria-hidden','false');
+  overlay.setAttribute('aria-hidden','false');
+
+  // ✅ focus first control in dialog
+  closeBtn?.focus();
+
+  body.classList.remove('footer-in-view');
+}
+
+
+function closeDrawer(){
+  if (!hamburger || !drawer || !overlay) return;
+
+  // ✅ move focus OUT of the drawer before hiding it
+  if (drawer.contains(document.activeElement)) {
+    hamburger.focus();
+  }
+
+  body.classList.remove('drawer-open');
+  hamburger.setAttribute('aria-expanded','false');
+
+  drawer.setAttribute('aria-hidden','true');
+  overlay.setAttribute('aria-hidden','true');
+
+  requestAnimationFrame(recomputeFooterState);
+}
+
 
     hamburger?.addEventListener('click', () => {
       body.classList.contains('drawer-open') ? closeDrawer() : openDrawer();
