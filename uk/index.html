@@ -1328,7 +1328,7 @@ body.drawer-open .nav{
 /* Base slider behavior */
 .slider{
   overflow-x: auto;
-  overflow-y: hidden;
+  overflow-y: visible;
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
@@ -1519,6 +1519,13 @@ body.drawer-open .nav{
   }
 }
 
+
+  @media (max-width: 720px){
+  .slider{
+    touch-action: auto !important;
+    overflow-y: visible !important;
+  }
+}
 </style>
 
 
