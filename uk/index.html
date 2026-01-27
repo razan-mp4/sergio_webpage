@@ -1328,15 +1328,15 @@ body.drawer-open .nav{
 /* Base slider behavior */
 .slider{
   overflow-x: auto;
-  overflow-y: visible;
+  overflow-y: hidden;
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-x: contain;
   scrollbar-width: none;
-  touch-action: auto !important;              /* or: manipulation */
+  touch-action: pan-y;              /* or: manipulation */
   overscroll-behavior-x: contain;             /* keep horizontal swipe contained */
-  overflow-y: visible !important;
+  overflow-y: hidden !important;
 }
 .slider::-webkit-scrollbar{ display:none; }
 
@@ -1523,16 +1523,26 @@ body.drawer-open .nav{
 
 
   @media (max-width: 720px){
+  /* iOS/phone fix:
+     - vertical swipes should scroll the PAGE
+     - horizontal swipes should move the slider
+     - prevent the slider from “rubber-banding” vertically (the “card dragging” feel) */
   .slider{
-    touch-action: auto !important;
-    overflow-y: visible !important;
+    overflow-y: hidden !important;
+    touch-action: pan-y;
+  }
+  /* Prevent images from being “dragged” */
+  .slider img{
+    -webkit-user-drag: none;
+    user-select: none;
+    pointer-events: none;
   }
 }
 
 /* ===== TRADES SECTION SPACING ===== */
 #trades h2{
-  margin-top: 25px;      /* space from top of surface */
-  margin-bottom: 30px;   /* space before slider */
+  margin-top: 44px;      /* space from top of surface */
+  margin-bottom: 38px;   /* space before slider */
 }
 
 </style>
