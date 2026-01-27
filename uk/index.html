@@ -292,31 +292,66 @@ body::after{
 .drawer-overlay{
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.62);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 220ms ease;
-  z-index: 1200;
+  width: 100%;
+  height: 100vh;   /* fallback */
+  height: 100svh;  /* newer Safari small viewport */
+  height: 100dvh;  /* newer Safari dynamic viewport */
+  z-index: 9999;
+
+  /* IMPORTANT: give overlay the same background as the page to avoid “white gaps” */
+  background: var(--app-bg);
+
+  /* If you want dimming, do it with rgba instead of relying on transparency */
+  /* background: rgba(7,8,10,0.72); */
+
+  display: none; /* hidden by default */
 }
+
+/* show overlay when active */
+.drawer-overlay.is-open{
+  display: block;
+}
+
+/* The actual drawer panel */
 .drawer{
-  position: fixed;
-  inset: 0;
-  background: rgba(7,8,10,0.92);
-  backdrop-filter: blur(18px);
-  transform: translateX(110%);
-  transition: transform 260ms cubic-bezier(.2,.8,.2,1);
-  z-index: 1300;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: min(92vw, 420px);
+  height: 100%;
+  /* give the panel a dark bg too */
+  background: var(--app-bg);
 
-  padding: 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+  /* safe-area padding so bottom bar area is dark, not white */
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-top: env(safe-area-inset-top);
 
-  overflow-y: auto;                 /* ✅ scroll inside drawer */
+  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 
-  /* ✅ avoid iPhone white block / safe area */
-  padding-bottom: calc(max(18px, env(safe-area-inset-bottom)) + 56px);
+  /* slide in */
+  transform: translateX(-102%);
+  transition: transform 280ms ease;
+}
+
+/* open state */
+.drawer-overlay.is-open .drawer{
+  transform: translateX(0);
+}
+
+/* Optional: click outside to close area (if you want it) */
+.drawer-scrim{
+  position: absolute;
+  inset: 0;
+  background: rgba(7,8,10,0.55); /* dim */
+}
+
+/* Put scrim behind the panel */
+.drawer{
+  z-index: 2;
+}
+.drawer-scrim{
+  z-index: 1;
 }
 
 .drawer-top{
@@ -354,6 +389,8 @@ body::after{
 
 body.drawer-open{
   overflow: hidden;
+  background: var(--app-bg);
+  overscroll-behavior: none;
   touch-action: none;
 }
 body.drawer-open .drawer-overlay{ opacity: 1; pointer-events: auto; }
@@ -1603,7 +1640,8 @@ body.drawer-open .nav{
   </header>
 
   <!-- ===== Mobile Drawer (FULL SCREEN) ===== -->
-  <div class="drawer-overlay" id="drawerOverlay" aria-hidden="true"></div>
+  <div class="drawer-overlay" id="drawerOverlay" aria-hidden="true">
+  <div class="drawer-scrim" id="drawerScrim"></div>
   <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Menu">
     <div class="drawer-top">
 <a class="logo" href="#top" data-nav>
@@ -1632,7 +1670,7 @@ body.drawer-open .nav{
   </div>
 </div>
   </aside>
-
+</div>
   <!-- ===== Content ===== -->
   <main id="top" class="wrap">
 
@@ -2291,7 +2329,8 @@ b.addEventListener('click', () => {
     // ===== Drawer menu logic =====
     const body      = document.body;
     const hamburger = $('#hamburger');
-    const overlay   = $('#drawerOverlay');
+    const overlay = document.getElementById("drawerOverlay");
+    const scrim   = document.getElementById("drawerScrim");
     const closeBtn  = $('#drawerClose');
     const drawer    = $('#drawer');
     const footerEl  = $('#pageFooter');
@@ -2320,33 +2359,22 @@ b.addEventListener('click', () => {
       body.classList.toggle('footer-in-view', shouldJump);
     }
 
-    function openDrawer(){
-      if (!hamburger || !drawer || !overlay) return;
+const overlay = document.getElementById("drawerOverlay");
+const scrim   = document.getElementById("drawerScrim");
 
-      body.classList.add('drawer-open');
-      hamburger.setAttribute('aria-expanded','true');
+function openDrawer(){
+  overlay.classList.add("is-open");
+  overlay.setAttribute("aria-hidden", "false");
+  document.body.classList.add("drawer-open");
 
-      // Keep aria-hidden in sync (and avoid focus being hidden)
-      drawer.setAttribute('aria-hidden','false');
-      overlay.setAttribute('aria-hidden','false');
+  // Force a reflow (helps iOS apply dvh correctly on first open)
+  void overlay.offsetHeight;
+}
 
-      // focus first control in dialog
-      closeBtn?.focus();
-
-      body.classList.remove('footer-in-view');
-    }
-
-    function closeDrawer(){
-      if (!hamburger || !drawer || !overlay) return;
-
-      // move focus OUT before hiding drawer to avoid aria-hidden warning
-      if (drawer.contains(document.activeElement)) hamburger.focus();
-
-      body.classList.remove('drawer-open');
-      hamburger.setAttribute('aria-expanded','false');
-
-      drawer.setAttribute('aria-hidden','true');
-      overlay.setAttribute('aria-hidden','true');
+function closeDrawer(){
+  overlay.classList.remove("is-open");
+  overlay.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("drawer-open");
 
       requestAnimationFrame(recomputeFooterState);
     }
