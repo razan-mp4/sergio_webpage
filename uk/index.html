@@ -1613,6 +1613,39 @@ body.drawer-open .nav{
   margin-bottom: 38px;   /* space before slider */
 }
 
+
+
+
+
+  /* ===========================
+   iOS Safari: remove bottom bar in drawer
+   Keep home-indicator zone showing the page behind
+=========================== */
+
+/* 1) NEVER force black backgrounds globally (this causes “stays after close”) */
+html, body{
+  background-color: transparent !important;
+}
+
+/* 2) Drawer + overlay should STOP above the bottom safe-area */
+.drawer,
+.drawer-overlay{
+  bottom: env(safe-area-inset-bottom) !important;
+}
+
+/* 3) Remove any safe-area padding that creates a visible empty black block */
+.drawer{
+  padding-bottom: 18px !important;    /* normal padding only */
+  height: auto !important;
+  max-height: none !important;
+}
+
+/* 4) Make sure drawer scroll area still works */
+.drawer{
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+
 </style>
 
 
