@@ -299,23 +299,23 @@ body::after{
 .drawer{
   position: fixed;
   inset: 0;
-  background: rgba(7,8,10,0.92);   /* keep premium translucent look */
+  background: rgba(7,8,10,0.92);
   backdrop-filter: blur(18px);
+  transform: translateX(110%);
+  transition: transform 260ms cubic-bezier(.2,.8,.2,1);
+  z-index: 1300;
 
   padding: 18px;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  overflow-y: auto;                 /* ✅ scroll inside drawer */
   -webkit-overflow-scrolling: touch;
 
-  height: 100dvh;
-  max-height: 100dvh;
+  /* ✅ avoid iPhone white block / safe area */
+  padding-bottom: calc(max(18px, env(safe-area-inset-bottom)) + 56px);
 }
-
-/* Stop iOS rubber-band showing white under drawer */
-.drawer,
-.drawer *{
-  -webkit-overflow-scrolling: touch;
-}
-
 html, body{
   background-color: #07080a;
 }
