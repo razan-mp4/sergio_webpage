@@ -2480,7 +2480,7 @@ initSwipeSlider(reviewsSlider, reviewsDots, { drag: true });
   sliders.forEach(slider => {
     let startX = 0, startY = 0, startLeft = 0;
     let lock = null; // 'x' | 'y' | null
-    const TH = 2;    // px
+    const TH = 1;    // px
 
     slider.addEventListener('touchstart', (e) => {
       if (!e.touches || e.touches.length !== 1) return;
