@@ -2473,22 +2473,64 @@ initSwipeSlider(reviewsSlider, reviewsDots, { drag: true });
 })();
 
     (function () {
-  // Mobile: make sliders swipe horizontally without "dragging" vertically,
-  // while still allowing normal page vertical scroll.
+  // Mobile: horizontal swipe on sliders, but allow normal vertical page scroll.
+  // Also: make SHORT swipes work by snapping to next/prev on touchend.
+
   const sliders = document.querySelectorAll('.slider');
 
+  // TUNING (you can tweak)
+  const INTENT_TH = 2;        // px to decide X vs Y (very small)
+  const SNAP_DIST = 12;       // px distance needed to change slide (short swipes)
+  const FLICK_V   = 0.35;     // px/ms velocity to count as a flick (fast short swipe)
+
+  function getSlides(slider){
+    return Array.from(slider.children).filter(el =>
+      el.classList.contains('trade-slide') || el.classList.contains('review-slide')
+    );
+  }
+
+  function snapTo(slider, slides, index){
+    index = Math.max(0, Math.min(slides.length - 1, index));
+    const target = slides[index];
+    if (!target) return;
+
+    // scroll to the slide's left edge (works with your scroll-snap + padding)
+    slider.scrollTo({ left: target.offsetLeft - slider.offsetLeft, behavior: 'smooth' });
+  }
+
+  function nearestIndex(slider, slides){
+    const left = slider.scrollLeft;
+    let bestI = 0, bestD = Infinity;
+    slides.forEach((s, i) => {
+      const d = Math.abs((s.offsetLeft - slider.offsetLeft) - left);
+      if (d < bestD) { bestD = d; bestI = i; }
+    });
+    return bestI;
+  }
+
   sliders.forEach(slider => {
+    const slides = getSlides(slider);
+    if (!slides.length) return;
+
     let startX = 0, startY = 0, startLeft = 0;
+    let lastX = 0, lastT = 0;
+    let startT = 0;
     let lock = null; // 'x' | 'y' | null
-    const TH = 1;    // px
+    let activeIndex = 0;
 
     slider.addEventListener('touchstart', (e) => {
       if (!e.touches || e.touches.length !== 1) return;
+
       const t = e.touches[0];
-      startX = t.clientX;
+      startX = lastX = t.clientX;
       startY = t.clientY;
       startLeft = slider.scrollLeft;
+
+      startT = lastT = performance.now();
       lock = null;
+
+      // keep a “current” index baseline
+      activeIndex = nearestIndex(slider, slides);
     }, { passive: true });
 
     slider.addEventListener('touchmove', (e) => {
@@ -2498,22 +2540,52 @@ initSwipeSlider(reviewsSlider, reviewsDots, { drag: true });
       const dx = t.clientX - startX;
       const dy = t.clientY - startY;
 
-      // Decide intent after a small threshold
       if (lock === null) {
-        if (Math.abs(dx) < TH && Math.abs(dy) < TH) return;
+        if (Math.abs(dx) < INTENT_TH && Math.abs(dy) < INTENT_TH) return;
         lock = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
       }
 
-      // Horizontal swipe: manually scroll the slider (Safari-friendly),
-      // and prevent vertical page scroll for this gesture only.
       if (lock === 'x') {
+        // Manual horizontal scroll (Safari-friendly) + stop page scroll for this gesture
         slider.scrollLeft = startLeft - dx;
-        e.preventDefault(); // requires passive:false
+        e.preventDefault();
+
+        // velocity tracking
+        const now = performance.now();
+        lastX = t.clientX;
+        lastT = now;
       }
-      // If lock === 'y' -> do nothing (page scroll works)
+      // lock === 'y' => do nothing (page scroll works)
     }, { passive: false });
 
-    slider.addEventListener('touchend', () => { lock = null; }, { passive: true });
+    slider.addEventListener('touchend', () => {
+      if (lock !== 'x') { lock = null; return; }
+
+      const endT = performance.now();
+      const totalDt = Math.max(1, endT - startT);
+
+      // distance of gesture (positive = moved right finger, so content should go left)
+      const totalDx = (lastX - startX);
+
+      // velocity (px/ms)
+      const v = totalDx / totalDt;
+
+      // Decide if we should go next/prev
+      let nextIndex = activeIndex;
+
+      if (Math.abs(totalDx) >= SNAP_DIST || Math.abs(v) >= FLICK_V) {
+        // finger moved left -> next slide (content goes right)
+        if (totalDx < 0) nextIndex = activeIndex + 1;
+        else nextIndex = activeIndex - 1;
+      } else {
+        // small slow move: just snap to nearest
+        nextIndex = nearestIndex(slider, slides);
+      }
+
+      snapTo(slider, slides, nextIndex);
+      lock = null;
+    }, { passive: true });
+
     slider.addEventListener('touchcancel', () => { lock = null; }, { passive: true });
   });
 })();
