@@ -314,7 +314,7 @@ body::after{
   -webkit-overflow-scrolling: touch;
 
   /* ✅ avoid iPhone white block / safe area */
-  padding-bottom: calc(max(18px, env(safe-area-inset-bottom)) + 56px);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
   /* === iOS SAFARI FIX: remove white safe-area gap in drawer === */
