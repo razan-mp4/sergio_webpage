@@ -978,6 +978,12 @@ footer{
 
   body.footer-in-view:not(.drawer-open) .fab{ bottom: 92px; }
   .footer-stack{ flex-direction: column; align-items: center; gap: 10px; }
+
+
+  /* Extra breathing room for Trades section title + slider (mobile) */
+  #trades .surface{ padding-top: 34px; }
+  #trades .reveal-title{ margin-top: 0; margin-bottom: 18px; }
+
 }
 
 @media (max-width: 520px){
@@ -2467,16 +2473,22 @@ initSwipeSlider(reviewsSlider, reviewsDots, { drag: true });
 })();
 
     (function () {
+  // Mobile: make sliders swipe horizontally without "dragging" vertically,
+  // while still allowing normal page vertical scroll.
   const sliders = document.querySelectorAll('.slider');
 
   sliders.forEach(slider => {
-    let startX = 0, startY = 0, locked = null;
+    let startX = 0, startY = 0, startLeft = 0;
+    let lock = null; // 'x' | 'y' | null
+    const TH = 6;    // px
 
     slider.addEventListener('touchstart', (e) => {
+      if (!e.touches || e.touches.length !== 1) return;
       const t = e.touches[0];
       startX = t.clientX;
       startY = t.clientY;
-      locked = null;
+      startLeft = slider.scrollLeft;
+      lock = null;
     }, { passive: true });
 
     slider.addEventListener('touchmove', (e) => {
@@ -2486,23 +2498,27 @@ initSwipeSlider(reviewsSlider, reviewsDots, { drag: true });
       const dx = t.clientX - startX;
       const dy = t.clientY - startY;
 
-      if (locked === null) {
-        // decide direction after a small threshold
-        if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
-          locked = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
-        } else {
-          return;
-        }
+      // Decide intent after a small threshold
+      if (lock === null) {
+        if (Math.abs(dx) < TH && Math.abs(dy) < TH) return;
+        lock = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
       }
 
-      // If user is swiping horizontally, prevent vertical page scroll "rubber band"
-      if (locked === 'x') {
-        e.preventDefault(); // must be non-passive
+      // Horizontal swipe: manually scroll the slider (Safari-friendly),
+      // and prevent vertical page scroll for this gesture only.
+      if (lock === 'x') {
+        slider.scrollLeft = startLeft - dx;
+        e.preventDefault(); // requires passive:false
       }
+      // If lock === 'y' -> do nothing (page scroll works)
     }, { passive: false });
+
+    slider.addEventListener('touchend', () => { lock = null; }, { passive: true });
+    slider.addEventListener('touchcancel', () => { lock = null; }, { passive: true });
   });
 })();
 </script>
+
 
 
 
