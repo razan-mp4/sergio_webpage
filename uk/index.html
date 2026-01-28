@@ -2539,16 +2539,20 @@ b.addEventListener('click', () => {
       });
     });
 
-    // ===== Accordion (multi-open) =====
-    $$('#accordion .acc-item').forEach(item => {
-      const btn = $('.acc-btn', item);
-      if (!btn) return;
-      btn.addEventListener('click', () => {
-        const isOpen = item.classList.contains('open');
-        item.classList.toggle('open', !isOpen);
-        btn.setAttribute('aria-expanded', String(!isOpen));
-      });
+// ===== Accordion (multi-open) — works for ALL .accordion blocks =====
+$$('.accordion').forEach(acc => {
+  $$('.acc-item', acc).forEach(item => {
+    const btn = $('.acc-btn', item);
+    if (!btn) return;
+
+    btn.addEventListener('click', () => {
+      const isOpen = item.classList.contains('open');
+      item.classList.toggle('open', !isOpen);
+      btn.setAttribute('aria-expanded', String(!isOpen));
     });
+  });
+});
+
 
     
 
