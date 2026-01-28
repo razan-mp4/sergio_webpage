@@ -1596,6 +1596,36 @@ body.drawer-open .nav{
   margin-bottom: 38px;   /* space before slider */
 }
 
+
+  /* Make drawer feel shorter on top + more room at bottom */
+.drawer{
+  /* more space so language buttons never sit under FAB area */
+  padding-bottom: calc(max(18px, env(safe-area-inset-bottom)) + 140px);
+
+  /* stop scroll chaining (prevents “scroll behind” on many browsers) */
+  overscroll-behavior: contain;
+}
+
+/* Smaller header area where logo is */
+.drawer-top{
+  padding-top: 2px;
+  padding-bottom: 8px;
+  margin-bottom: 4px;
+}
+
+/* If your logo inside drawer is an <img>, make it smaller */
+.drawer-top img{
+  height: 42px;
+  width: auto;
+  display: block;
+}
+
+/* When drawer is open, hide FAB buttons so they can’t overlap drawer */
+body.drawer-open .fab{
+  opacity: 0;
+  pointer-events: none;
+}
+
 </style>
 
 
@@ -2700,36 +2730,66 @@ b.addEventListener('click', () => {
       body.classList.toggle('footer-in-view', shouldJump);
     }
 
-    function openDrawer(){
-      if (!hamburger || !drawer || !overlay) return;
+    // --- iOS-safe scroll lock ---
+let __scrollY = 0;
 
-      body.classList.add('drawer-open');
-      hamburger.setAttribute('aria-expanded','true');
+function lockPageScroll(){
+  __scrollY = window.scrollY || 0;
+  document.body.style.position = 'fixed';
+  document.body.style.top = `-${__scrollY}px`;
+  document.body.style.left = '0';
+  document.body.style.right = '0';
+  document.body.style.width = '100%';
+}
 
-      // Keep aria-hidden in sync (and avoid focus being hidden)
-      drawer.setAttribute('aria-hidden','false');
-      overlay.setAttribute('aria-hidden','false');
+function unlockPageScroll(){
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.left = '';
+  document.body.style.right = '';
+  document.body.style.width = '';
+  window.scrollTo(0, __scrollY);
+}
 
-      // focus first control in dialog
-      closeBtn?.focus();
+// OPTIONAL: prevent touchmove from reaching the page behind (iOS)
+function stopTouchMove(e){
+  // allow scrolling INSIDE the drawer only
+  const drawerEl = document.getElementById('drawer');
+  if (drawerEl && drawerEl.contains(e.target)) return;
+  e.preventDefault();
+}
 
-      body.classList.remove('footer-in-view');
-    }
+function openDrawer(){
+  // lock page first (prevents “scroll behind”)
+  lockPageScroll();
 
-    function closeDrawer(){
-      if (!hamburger || !drawer || !overlay) return;
+  body.classList.add('drawer-open');
+  hamburger.setAttribute('aria-expanded','true');
 
-      // move focus OUT before hiding drawer to avoid aria-hidden warning
-      if (drawer.contains(document.activeElement)) hamburger.focus();
+  drawer.setAttribute('aria-hidden','false');
+  overlay.setAttribute('aria-hidden','false');
 
-      body.classList.remove('drawer-open');
-      hamburger.setAttribute('aria-expanded','false');
+  // iOS extra safety
+  document.addEventListener('touchmove', stopTouchMove, { passive:false });
+}
 
-      drawer.setAttribute('aria-hidden','true');
-      overlay.setAttribute('aria-hidden','true');
+function closeDrawer(){
+  // move focus OUT before hiding drawer (keeps your aria warning away if you have this)
+  if (drawer.contains(document.activeElement)) hamburger.focus();
 
-      requestAnimationFrame(recomputeFooterState);
-    }
+  body.classList.remove('drawer-open');
+  hamburger.setAttribute('aria-expanded','false');
+
+  drawer.setAttribute('aria-hidden','true');
+  overlay.setAttribute('aria-hidden','true');
+
+  // unlock page after closing
+  unlockPageScroll();
+  document.removeEventListener('touchmove', stopTouchMove, { passive:false });
+
+  requestAnimationFrame(recomputeFooterState);
+}
+
 
     hamburger?.addEventListener('click', () => {
       body.classList.contains('drawer-open') ? closeDrawer() : openDrawer();
