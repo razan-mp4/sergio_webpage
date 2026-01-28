@@ -15,6 +15,18 @@
 
 
 <style>
+html, body{
+  background-color: #07080a;
+  overscroll-behavior: none;
+}
+body.drawer-open{
+  background-color: #07080a;
+}
+@supports (-webkit-touch-callout: none){
+  .drawer{
+    min-height: 100dvh;
+  }
+}
 
 /* Only hide animated elements when JS is running */
 .js .reveal-title,
@@ -295,22 +307,32 @@ body::after{
 .drawer{
   position: fixed;
   inset: 0;
-  background: rgba(7,8,10,0.92);
-  backdrop-filter: blur(18px);
-  transform: translateX(110%);
-  transition: transform 260ms cubic-bezier(.2,.8,.2,1);
   z-index: 1300;
 
-  padding: 18px;
+  /* draw background under safe area */
+  background: rgba(7,8,10,0.92);
+  backdrop-filter: blur(18px);
+
+  /* IMPORTANT */
+  padding-top: env(safe-area-inset-top);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
+
   display: flex;
   flex-direction: column;
   gap: 14px;
 
-  overflow-y: auto;                 /* ✅ scroll inside drawer */
+  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 
-  /* ✅ avoid iPhone white block / safe area */
-  padding-bottom: calc(max(18px, env(safe-area-inset-bottom)) + 56px);
+  transform: translateX(110%);
+  transition: transform 260ms cubic-bezier(.2,.8,.2,1);
+}
+
+.drawer-inner{
+  padding: 18px;
+  padding-bottom: calc(18px + 56px); /* breathing room for thumb */
 }
 
 .drawer-top{
@@ -1599,6 +1621,7 @@ body.drawer-open .nav{
   <!-- ===== Mobile Drawer (FULL SCREEN) ===== -->
   <div class="drawer-overlay" id="drawerOverlay" aria-hidden="true"></div>
   <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Menu">
+      <div class="drawer-inner">
     <div class="drawer-top">
 <a class="logo" href="#top" data-nav>
   <img src="../assets/logo.png" alt="Logo" class="logo-img">
@@ -1625,6 +1648,7 @@ body.drawer-open .nav{
     <button type="button" class="seg-btn" data-lang="ru">RU</button>
   </div>
 </div>
+          </div>
   </aside>
 
   <!-- ===== Content ===== -->
